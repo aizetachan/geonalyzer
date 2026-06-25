@@ -60,6 +60,13 @@ const TRANSPORTS: Transport[] = [
     build: (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
     preservesStatus: false,
   },
+  {
+    // Extra public fallback: public proxies are flaky, so a third option
+    // meaningfully improves the odds a resource resolves.
+    label: 'codetabs',
+    build: (u) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+    preservesStatus: false,
+  },
 ];
 
 const DEFAULT_TIMEOUT_MS = 12000;
