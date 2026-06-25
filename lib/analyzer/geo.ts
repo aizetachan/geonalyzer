@@ -13,7 +13,7 @@ interface AiBot {
   vendor: string;
 }
 
-const AI_BOTS: AiBot[] = [
+export const AI_BOTS: AiBot[] = [
   // Training crawlers (use content to train models). Blocking is legitimate and
   // does NOT prevent citations.
   { name: 'GPTBot', kind: 'training', vendor: 'OpenAI' },
@@ -36,7 +36,7 @@ interface RobotsGroup {
 }
 
 /** Minimal robots.txt parser grouping rules by User-agent. */
-function parseRobots(body: string): RobotsGroup[] {
+export function parseRobots(body: string): RobotsGroup[] {
   const groups: RobotsGroup[] = [];
   let current: RobotsGroup | null = null;
   let expectingAgent = false;
@@ -75,7 +75,7 @@ function parseRobots(body: string): RobotsGroup[] {
  * specific matching group (bot-specific overrides "*") and longest-match
  * precedence between Allow/Disallow, per the robots.txt convention.
  */
-function isBotAllowed(groups: RobotsGroup[], botName: string): boolean {
+export function isBotAllowed(groups: RobotsGroup[], botName: string): boolean {
   const lower = botName.toLowerCase();
   const specific = groups.filter((g) => g.agents.includes(lower));
   const wildcard = groups.filter((g) => g.agents.includes('*'));
