@@ -1,6 +1,6 @@
-// Bloque B — On-page.
+// Block B — On-page.
 
-import type { CheckResult, CheckStatus } from '../types';
+import type { CheckResult, CheckStatus, MessageParams } from '../types';
 import { buildCheck } from '../checks-catalog';
 import type { AnalysisContext } from './context';
 import { getVisibleText, countWords, safeHost } from './utils';
@@ -19,27 +19,35 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   const titleLen = title.length;
   const generic = GENERIC_TITLES.includes(title.toLowerCase());
   let titleStatus: CheckStatus;
-  let titleMsg: string;
+  let titleKey: string;
+  let titleParams: MessageParams | undefined;
   if (!title) {
     titleStatus = 'fail';
-    titleMsg = 'No hay etiqueta <title>.';
+    titleKey = 'onpage.title.missing';
   } else if (generic) {
     titleStatus = 'warn';
-    titleMsg = `El title es genérico ("${title}").`;
+    titleKey = 'onpage.title.generic';
+    titleParams = { title };
   } else if (titleLen >= 50 && titleLen <= 60) {
     titleStatus = 'pass';
-    titleMsg = `Title óptimo (${titleLen} caracteres).`;
+    titleKey = 'onpage.title.optimal';
+    titleParams = { len: titleLen };
   } else if (titleLen >= 30 && titleLen <= 70) {
     titleStatus = 'warn';
-    titleMsg = `Title aceptable pero fuera del rango ideal de 50-60 (${titleLen} caracteres).`;
+    titleKey = 'onpage.title.acceptable';
+    titleParams = { len: titleLen };
   } else {
     titleStatus = 'warn';
-    titleMsg =
-      titleLen < 30
-        ? `Title demasiado corto (${titleLen} caracteres).`
-        : `Title demasiado largo (${titleLen} caracteres); se truncará en los resultados.`;
+    titleKey = titleLen < 30 ? 'onpage.title.short' : 'onpage.title.long';
+    titleParams = { len: titleLen };
   }
-  checks.push(buildCheck('onpage.title', titleStatus, { value: titleLen, message: titleMsg }));
+  checks.push(
+    buildCheck('onpage.title', titleStatus, {
+      value: titleLen,
+      messageKey: titleKey,
+      messageParams: titleParams,
+    }),
+  );
 
   // Meta description
   const desc = (
@@ -47,37 +55,51 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   ).trim();
   const descLen = desc.length;
   let descStatus: CheckStatus;
-  let descMsg: string;
+  let descKey: string;
+  let descParams: MessageParams | undefined;
   if (!desc) {
     descStatus = 'fail';
-    descMsg = 'Falta la meta description.';
+    descKey = 'onpage.metaDescription.missing';
   } else if (descLen >= 120 && descLen <= 160) {
     descStatus = 'pass';
-    descMsg = `Meta description óptima (${descLen} caracteres).`;
+    descKey = 'onpage.metaDescription.optimal';
+    descParams = { len: descLen };
   } else {
     descStatus = 'warn';
-    descMsg =
-      descLen < 120
-        ? `Meta description corta (${descLen} caracteres); ideal 120-160.`
-        : `Meta description larga (${descLen} caracteres); se truncará.`;
+    descKey = descLen < 120 ? 'onpage.metaDescription.short' : 'onpage.metaDescription.long';
+    descParams = { len: descLen };
   }
-  checks.push(buildCheck('onpage.meta-description', descStatus, { value: descLen, message: descMsg }));
+  checks.push(
+    buildCheck('onpage.meta-description', descStatus, {
+      value: descLen,
+      messageKey: descKey,
+      messageParams: descParams,
+    }),
+  );
 
   // Single <h1>
   const h1s = doc.querySelectorAll('h1');
   let h1Status: CheckStatus;
-  let h1Msg: string;
+  let h1Key: string;
+  let h1Params: MessageParams | undefined;
   if (h1s.length === 1) {
     h1Status = 'pass';
-    h1Msg = 'Hay exactamente un <h1>.';
+    h1Key = 'onpage.h1Single.one';
   } else if (h1s.length === 0) {
     h1Status = 'fail';
-    h1Msg = 'No hay ningún <h1>.';
+    h1Key = 'onpage.h1Single.none';
   } else {
     h1Status = 'warn';
-    h1Msg = `Hay ${h1s.length} etiquetas <h1>; debería haber solo una.`;
+    h1Key = 'onpage.h1Single.many';
+    h1Params = { count: h1s.length };
   }
-  checks.push(buildCheck('onpage.h1-single', h1Status, { value: h1s.length, message: h1Msg }));
+  checks.push(
+    buildCheck('onpage.h1-single', h1Status, {
+      value: h1s.length,
+      messageKey: h1Key,
+      messageParams: h1Params,
+    }),
+  );
 
   // Heading hierarchy (no skipped levels)
   const headings = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((h) =>
@@ -95,16 +117,15 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   if (headings.length === 0) {
     checks.push(
       buildCheck('onpage.heading-hierarchy', 'fail', {
-        message: 'No hay encabezados que estructuren el contenido.',
+        messageKey: 'onpage.headingHierarchy.none',
       }),
     );
   } else {
     checks.push(
       buildCheck('onpage.heading-hierarchy', skipped ? 'warn' : 'pass', {
-        value: `${headings.length} headings`,
-        message: skipped
-          ? 'La jerarquía de encabezados salta niveles (p. ej. de h2 a h4).'
-          : 'La jerarquía de encabezados es coherente.',
+        valueKey: 'headings',
+        valueParams: { n: headings.length },
+        messageKey: skipped ? 'onpage.headingHierarchy.skipped' : 'onpage.headingHierarchy.ok',
       }),
     );
   }
@@ -119,27 +140,24 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('onpage.word-count', wcStatus, {
       value: words,
-      message:
-        wcStatus === 'pass'
-          ? `Contenido con suficiente profundidad (${words} palabras).`
-          : `Contenido breve (${words} palabras); amplíalo para aportar más valor.`,
+      messageKey: wcStatus === 'pass' ? 'onpage.wordCount.ok' : 'onpage.wordCount.short',
+      messageParams: { words },
     }),
   );
 
   // Text/HTML ratio
   const htmlLen = html.length || 1;
   const ratio = (text.length / htmlLen) * 100;
+  const ratioStr = `${ratio.toFixed(1)}%`;
   let ratioStatus: CheckStatus;
   if (ratio >= 10) ratioStatus = 'pass';
   else if (ratio >= 4) ratioStatus = 'warn';
   else ratioStatus = 'fail';
   checks.push(
     buildCheck('onpage.text-html-ratio', ratioStatus, {
-      value: `${ratio.toFixed(1)}%`,
-      message:
-        ratioStatus === 'pass'
-          ? `Buen ratio texto/HTML (${ratio.toFixed(1)}%).`
-          : `Ratio texto/HTML bajo (${ratio.toFixed(1)}%); demasiado marcado frente al texto.`,
+      value: ratioStr,
+      messageKey: ratioStatus === 'pass' ? 'onpage.textHtmlRatio.ok' : 'onpage.textHtmlRatio.low',
+      messageParams: { ratio: ratioStr },
     }),
   );
 
@@ -149,7 +167,7 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   if (total === 0) {
     checks.push(
       buildCheck('onpage.img-alt', 'info', {
-        message: 'No hay imágenes en la página.',
+        messageKey: 'onpage.imgAlt.none',
       }),
     );
   } else {
@@ -162,10 +180,8 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
     checks.push(
       buildCheck('onpage.img-alt', altStatus, {
         value: `${withAlt}/${total}`,
-        message:
-          altStatus === 'pass'
-            ? 'Todas las imágenes tienen atributo alt.'
-            : `Solo ${withAlt} de ${total} imágenes tienen alt.`,
+        messageKey: altStatus === 'pass' ? 'onpage.imgAlt.all' : 'onpage.imgAlt.partial',
+        messageParams: altStatus === 'pass' ? undefined : { withAlt, total },
       }),
     );
   }
@@ -179,21 +195,28 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   if (ogCount === 3) ogStatus = 'pass';
   else if (ogCount >= 1) ogStatus = 'warn';
   else ogStatus = 'fail';
+  let ogKey: string;
+  let ogParams: MessageParams | undefined;
+  if (ogStatus === 'pass') {
+    ogKey = 'onpage.openGraph.complete';
+  } else if (ogCount === 0) {
+    ogKey = 'onpage.openGraph.none';
+  } else {
+    ogKey = 'onpage.openGraph.partial';
+    const missing = [
+      !ogTitle && 'og:title',
+      !ogDesc && 'og:description',
+      !ogImage && 'og:image',
+    ]
+      .filter(Boolean)
+      .join(', ');
+    ogParams = { count: ogCount, missing };
+  }
   checks.push(
     buildCheck('onpage.open-graph', ogStatus, {
       value: `${ogCount}/3`,
-      message:
-        ogStatus === 'pass'
-          ? 'Open Graph completo (title, description, image).'
-          : ogCount === 0
-            ? 'No hay etiquetas Open Graph.'
-            : `Open Graph incompleto (${ogCount}/3): falta ${[
-                !ogTitle && 'og:title',
-                !ogDesc && 'og:description',
-                !ogImage && 'og:image',
-              ]
-                .filter(Boolean)
-                .join(', ')}.`,
+      messageKey: ogKey,
+      messageParams: ogParams,
     }),
   );
 
@@ -202,9 +225,7 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('onpage.twitter-cards', twCard ? 'pass' : 'warn', {
       value: twCard?.getAttribute('content') || undefined,
-      message: twCard
-        ? 'Twitter Card declarada.'
-        : 'No hay Twitter Cards; mejoran la presentación al compartir en X/Twitter.',
+      messageKey: twCard ? 'onpage.twitterCards.present' : 'onpage.twitterCards.missing',
     }),
   );
 
@@ -226,12 +247,13 @@ export function analyzeOnPage(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('onpage.internal-links', linkStatus, {
       value: internal,
-      message:
+      messageKey:
         linkStatus === 'pass'
-          ? `${internal} enlaces internos detectados.`
+          ? 'onpage.internalLinks.ok'
           : internal === 0
-            ? 'No hay enlaces internos; dificulta el descubrimiento y la distribución de autoridad.'
-            : `Solo ${internal} enlace(s) interno(s); añade más para enlazar tu contenido.`,
+            ? 'onpage.internalLinks.none'
+            : 'onpage.internalLinks.few',
+      messageParams: internal > 0 ? { count: internal } : undefined,
     }),
   );
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useI18n } from '@/lib/i18n/context';
 
 interface UrlInputProps {
   onAnalyze: (url: string) => void;
@@ -9,6 +10,7 @@ interface UrlInputProps {
 }
 
 export default function UrlInput({ onAnalyze, loading, initialValue = '' }: UrlInputProps) {
+  const { t } = useI18n();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +18,7 @@ export default function UrlInput({ onAnalyze, loading, initialValue = '' }: UrlI
     e.preventDefault();
     const trimmed = value.trim();
     if (!trimmed) {
-      setError('Introduce una URL para analizar.');
+      setError(t('url.errorEmpty'));
       return;
     }
     // Lenient validation: accept "example.com" or full URLs.
@@ -25,7 +27,7 @@ export default function UrlInput({ onAnalyze, loading, initialValue = '' }: UrlI
       // eslint-disable-next-line no-new
       new URL(candidate);
     } catch {
-      setError('La URL no parece válida.');
+      setError(t('url.errorInvalid'));
       return;
     }
     setError(null);
@@ -43,15 +45,15 @@ export default function UrlInput({ onAnalyze, loading, initialValue = '' }: UrlI
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder="introduce-una-url.com"
+          placeholder={t('url.placeholder')}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           disabled={loading}
-          aria-label="URL a analizar"
+          aria-label={t('url.ariaLabel')}
           aria-invalid={!!error}
         />
         <button className="btn btn-primary" type="submit" disabled={loading}>
-          {loading ? 'Analizando…' : 'Analizar'}
+          {loading ? t('url.analyzing') : t('url.analyze')}
         </button>
       </div>
       {error && (

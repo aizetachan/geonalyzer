@@ -5,11 +5,8 @@ import type { CategoryResult, CheckResult, CheckStatus } from './types';
 function check(status: CheckStatus, weight = 1): CheckResult {
   return {
     id: 'x',
-    label: 'x',
     status,
-    message: '',
-    why: '',
-    howToFix: '',
+    messageKey: 'x',
     weight,
   };
 }
@@ -47,7 +44,7 @@ describe('scoreChecks', () => {
 
 describe('scoreGlobal', () => {
   function cat(id: string, score: number, requiresBackend = false): CategoryResult {
-    return { id, label: id, score, checks: [], requiresBackend };
+    return { id, score, checks: [], requiresBackend };
   }
 
   it('weights categories and redistributes the backend-gated weight', () => {
@@ -82,13 +79,13 @@ describe('scoreGlobal', () => {
 
 describe('scoreLabel', () => {
   it('maps scores to qualitative labels at the boundaries', () => {
-    expect(scoreLabel(0)).toBe('Crítico');
-    expect(scoreLabel(39)).toBe('Crítico');
-    expect(scoreLabel(40)).toBe('Mejorable');
-    expect(scoreLabel(69)).toBe('Mejorable');
-    expect(scoreLabel(70)).toBe('Bueno');
-    expect(scoreLabel(90)).toBe('Bueno');
-    expect(scoreLabel(91)).toBe('Excelente');
-    expect(scoreLabel(100)).toBe('Excelente');
+    expect(scoreLabel(0)).toBe('critical');
+    expect(scoreLabel(39)).toBe('critical');
+    expect(scoreLabel(40)).toBe('improvable');
+    expect(scoreLabel(69)).toBe('improvable');
+    expect(scoreLabel(70)).toBe('good');
+    expect(scoreLabel(90)).toBe('good');
+    expect(scoreLabel(91)).toBe('excellent');
+    expect(scoreLabel(100)).toBe('excellent');
   });
 });

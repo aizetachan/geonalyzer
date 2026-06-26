@@ -1,4 +1,7 @@
+'use client';
+
 import { scoreLabel } from '@/lib/scoring';
+import { useI18n } from '@/lib/i18n/context';
 
 interface ScoreGaugeProps {
   score: number;
@@ -15,20 +18,21 @@ function colorForScore(score: number): string {
 }
 
 export default function ScoreGauge({ score, size = 200, showLabel = true }: ScoreGaugeProps) {
+  const { t } = useI18n();
   const clamped = Math.max(0, Math.min(100, score));
   const stroke = Math.max(8, Math.round(size * 0.06));
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
   const color = colorForScore(clamped);
-  const label = scoreLabel(clamped);
+  const label = t(`score.${scoreLabel(clamped)}`);
 
   return (
     <div
       className="gauge"
       style={{ width: size }}
       role="img"
-      aria-label={`Puntuación ${clamped} de 100: ${label}`}
+      aria-label={`${clamped}/100: ${label}`}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle

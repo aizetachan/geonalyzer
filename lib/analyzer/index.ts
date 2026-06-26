@@ -3,6 +3,7 @@
 // talks to the fetcher and the DOM, keeping the modules pure.
 
 import type { AnalysisResult, CategoryResult } from '../types';
+import { AnalysisError } from '../types';
 import { fetchResource, probeResource } from '../fetcher';
 import { scoreChecks, scoreGlobal } from '../scoring';
 import type { AnalysisContext } from './context';
@@ -13,21 +14,21 @@ import { analyzeGeo } from './geo';
 import { analyzePerformance } from './performance';
 
 export interface AnalysisStep {
+  /** Step id; the label is resolved at render time via i18n (`steps.<id>`). */
   id: string;
-  label: string;
 }
 
 /** Ordered steps surfaced to the loading UI. */
 export const ANALYSIS_STEPS: AnalysisStep[] = [
-  { id: 'fetch-html', label: 'Leyendo el HTML de la página' },
-  { id: 'fetch-robots', label: 'Analizando robots.txt' },
-  { id: 'fetch-sitemap', label: 'Comprobando sitemap.xml' },
-  { id: 'fetch-llms', label: 'Buscando llms.txt' },
-  { id: 'analyze-technical', label: 'Evaluando SEO técnico' },
-  { id: 'analyze-onpage', label: 'Evaluando contenido on-page' },
-  { id: 'analyze-schema', label: 'Evaluando datos estructurados' },
-  { id: 'analyze-geo', label: 'Evaluando GEO (motores de IA)' },
-  { id: 'scoring', label: 'Calculando puntuación' },
+  { id: 'fetch-html' },
+  { id: 'fetch-robots' },
+  { id: 'fetch-sitemap' },
+  { id: 'fetch-llms' },
+  { id: 'analyze-technical' },
+  { id: 'analyze-onpage' },
+  { id: 'analyze-schema' },
+  { id: 'analyze-geo' },
+  { id: 'scoring' },
 ];
 
 export type ProgressFn = (stepId: string) => void;
@@ -57,19 +58,17 @@ export async function analyze(
   onProgress('fetch-html');
   const main = await fetchResource(parsedUrl.href, { acceptAnyStatus: true });
   if (!main.ok) {
-    throw new Error(
-      `No se pudo obtener la página. Comprueba la URL o inténtalo de nuevo. (${main.error ?? 'sin detalles'})`,
-    );
+    throw new AnalysisError('errors.fetchFailed', main.error ? { detail: main.error } : undefined);
   }
 
   // 2–4. Supporting resources. Failures are non-fatal (recorded as warnings).
   onProgress('fetch-robots');
   const robots = await probeResource(`${origin}/robots.txt`);
-  if (!robots.ok) warnings.push('No se pudo obtener robots.txt.');
+  if (!robots.ok) warnings.push('robots');
 
   onProgress('fetch-sitemap');
   const sitemap = await probeResource(`${origin}/sitemap.xml`);
-  if (!sitemap.ok) warnings.push('No se pudo obtener sitemap.xml.');
+  if (!sitemap.ok) warnings.push('sitemap');
 
   onProgress('fetch-llms');
   const llms = await probeResource(`${origin}/llms.txt`);
@@ -105,10 +104,10 @@ export async function analyze(
   // 9. Assemble categories + scores.
   onProgress('scoring');
   const categories: CategoryResult[] = [
-    { id: 'technical', label: 'SEO técnico', checks: technicalChecks, score: scoreChecks(technicalChecks) },
-    { id: 'onpage', label: 'On-page', checks: onpageChecks, score: scoreChecks(onpageChecks) },
-    { id: 'schema', label: 'Datos estructurados', checks: schemaChecks, score: scoreChecks(schemaChecks) },
-    { id: 'geo', label: 'GEO', checks: geoChecks, score: scoreChecks(geoChecks) },
+    { id: 'technical', checks: technicalChecks, score: scoreChecks(technicalChecks) },
+    { id: 'onpage', checks: onpageChecks, score: scoreChecks(onpageChecks) },
+    { id: 'schema', checks: schemaChecks, score: scoreChecks(schemaChecks) },
+    { id: 'geo', checks: geoChecks, score: scoreChecks(geoChecks) },
     analyzePerformance(),
   ];
 

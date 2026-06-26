@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { I18nProvider } from '@/lib/i18n/context';
+import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
   title: 'SEO + GEO Analyzer',
   description:
-    'Analiza cualquier URL y descubre cómo de optimizada está para SEO clásico y para GEO (aparecer en respuestas de IA como ChatGPT, Claude y Perplexity).',
+    'Analyze any URL and discover how optimized it is for classic SEO and for GEO (appearing in AI answers from ChatGPT, Claude and Perplexity).',
 };
 
 export default function RootLayout({
@@ -13,8 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body>{children}</body>
+    <html lang="en">
+      <body>
+        <I18nProvider>
+          <Navbar />
+          {children}
+        </I18nProvider>
+      </body>
     </html>
   );
 }

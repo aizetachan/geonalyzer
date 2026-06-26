@@ -15,13 +15,11 @@ import { buildCheck } from '../checks-catalog';
 export function analyzePerformance(): CategoryResult {
   return {
     id: 'performance',
-    label: 'Rendimiento',
     score: 0,
     requiresBackend: true,
     checks: [
       buildCheck('perf.core-web-vitals', 'info', {
-        message:
-          'La medición de Core Web Vitals (LCP, INP, CLS) requiere backend. Disponible en la versión Pro.',
+        messageKey: 'perf.coreWebVitals',
       }),
     ],
   };

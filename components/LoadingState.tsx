@@ -1,4 +1,7 @@
+'use client';
+
 import { ANALYSIS_STEPS } from '@/lib/analyzer';
+import { useI18n } from '@/lib/i18n/context';
 
 interface LoadingStateProps {
   /** Id of the step currently running. */
@@ -7,6 +10,7 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({ currentStepId, url }: LoadingStateProps) {
+  const { t } = useI18n();
   const currentIndex = ANALYSIS_STEPS.findIndex((s) => s.id === currentStepId);
 
   return (
@@ -14,7 +18,7 @@ export default function LoadingState({ currentStepId, url }: LoadingStateProps) 
       <div className="loading-head">
         <div className="spinner" aria-hidden="true" />
         <div>
-          <h2 className="loading-title">Analizando</h2>
+          <h2 className="loading-title">{t('loading.title')}</h2>
           <p className="muted loading-url">{url}</p>
         </div>
       </div>
@@ -27,7 +31,7 @@ export default function LoadingState({ currentStepId, url }: LoadingStateProps) 
               <span className="step-icon" aria-hidden="true">
                 {state === 'done' ? '✓' : state === 'active' ? '◐' : '○'}
               </span>
-              <span className="step-label">{step.label}</span>
+              <span className="step-label">{t(`steps.${step.id}`)}</span>
             </li>
           );
         })}

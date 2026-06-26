@@ -54,10 +54,10 @@ export function scoreGlobal(categories: CategoryResult[]): number {
   return Math.round(weighted / totalWeight);
 }
 
-/** Qualitative label from a 0–100 score. */
+/** Qualitative label from a 0–100 score (returns an i18n key under `score`). */
 export function scoreLabel(score: number): ScoreLabel {
-  if (score < 40) return 'Crítico';
-  if (score < 70) return 'Mejorable';
-  if (score <= 90) return 'Bueno';
-  return 'Excelente';
+  if (score < 40) return 'critical';
+  if (score < 70) return 'improvable';
+  if (score <= 90) return 'good';
+  return 'excellent';
 }

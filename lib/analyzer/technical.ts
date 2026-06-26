@@ -1,4 +1,4 @@
-// Bloque A — SEO técnico.
+// Block A — Technical SEO.
 
 import type { CheckResult } from '../types';
 import { buildCheck } from '../checks-catalog';
@@ -13,9 +13,7 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('tech.https', isHttps ? 'pass' : 'fail', {
       value: parsedUrl.protocol.replace(':', ''),
-      message: isHttps
-        ? 'La página se sirve sobre HTTPS.'
-        : 'La página no usa HTTPS; la conexión no está cifrada.',
+      messageKey: isHttps ? 'tech.https.pass' : 'tech.https.fail',
     }),
   );
 
@@ -23,8 +21,7 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   if (httpStatus == null) {
     checks.push(
       buildCheck('tech.http-status', 'info', {
-        message:
-          'El código HTTP no es observable a través del proxy; se obtuvo contenido, así que la página responde.',
+        messageKey: 'tech.httpStatus.proxy',
       }),
     );
   } else {
@@ -34,9 +31,8 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
     checks.push(
       buildCheck('tech.http-status', status, {
         value: httpStatus,
-        message: ok
-          ? `La página responde ${httpStatus} OK.`
-          : `La página responde ${httpStatus}.`,
+        messageKey: ok ? 'tech.httpStatus.ok' : 'tech.httpStatus.other',
+        messageParams: { status: httpStatus },
       }),
     );
   }
@@ -46,9 +42,8 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('tech.html-lang', lang ? 'pass' : 'fail', {
       value: lang || undefined,
-      message: lang
-        ? `Idioma declarado: "${lang}".`
-        : 'Falta el atributo lang en la etiqueta <html>.',
+      messageKey: lang ? 'tech.htmlLang.pass' : 'tech.htmlLang.fail',
+      messageParams: lang ? { lang } : undefined,
     }),
   );
 
@@ -60,9 +55,7 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('tech.viewport', viewport ? 'pass' : 'fail', {
       value: viewport || undefined,
-      message: viewport
-        ? 'Meta viewport presente; la página es responsive-ready.'
-        : 'Falta el meta viewport; la página no se adaptará a móvil.',
+      messageKey: viewport ? 'tech.viewport.pass' : 'tech.viewport.fail',
     }),
   );
 
@@ -74,7 +67,7 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   if (!canonical) {
     checks.push(
       buildCheck('tech.canonical', 'warn', {
-        message: 'No se encontró etiqueta canonical.',
+        messageKey: 'tech.canonical.missing',
       }),
     );
   } else {
@@ -88,9 +81,7 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
     checks.push(
       buildCheck('tech.canonical', absolute ? 'pass' : 'warn', {
         value: canonical,
-        message: absolute
-          ? 'Canonical presente y bien formado.'
-          : 'Canonical presente pero no es una URL absoluta válida.',
+        messageKey: absolute ? 'tech.canonical.ok' : 'tech.canonical.notAbsolute',
       }),
     );
   }
@@ -104,28 +95,25 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   const blocksIndex = !!metaRobots && /noindex|nofollow|none/.test(metaRobots);
   checks.push(
     buildCheck('tech.meta-robots', blocksIndex ? 'fail' : 'pass', {
-      value: metaRobots || 'index,follow (por defecto)',
-      message: blocksIndex
-        ? `El meta robots bloquea la indexación/seguimiento ("${metaRobots}").`
-        : 'El meta robots no bloquea la indexación.',
+      value: metaRobots || undefined,
+      valueKey: metaRobots ? undefined : 'metaRobotsDefault',
+      messageKey: blocksIndex ? 'tech.metaRobots.blocks' : 'tech.metaRobots.ok',
+      messageParams: blocksIndex ? { value: metaRobots as string } : undefined,
     }),
   );
 
   // robots.txt exists and looks valid
-  const robotsValid =
-    robots.ok && /user-agent\s*:/i.test(robots.body);
+  const robotsValid = robots.ok && /user-agent\s*:/i.test(robots.body);
   if (!robots.ok) {
     checks.push(
       buildCheck('tech.robots-txt', 'fail', {
-        message: 'No se pudo obtener /robots.txt o no existe.',
+        messageKey: 'tech.robotsTxt.missing',
       }),
     );
   } else {
     checks.push(
       buildCheck('tech.robots-txt', robotsValid ? 'pass' : 'warn', {
-        message: robotsValid
-          ? 'robots.txt existe y contiene directivas válidas.'
-          : 'robots.txt existe pero no contiene directivas User-agent reconocibles.',
+        messageKey: robotsValid ? 'tech.robotsTxt.valid' : 'tech.robotsTxt.invalid',
       }),
     );
   }
@@ -137,23 +125,19 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   if (!sitemap.ok) {
     checks.push(
       buildCheck('tech.sitemap', 'fail', {
-        message: sitemapReferenced
-          ? 'robots.txt referencia un sitemap, pero /sitemap.xml no respondió.'
-          : 'No se encontró /sitemap.xml ni referencia en robots.txt.',
+        messageKey: sitemapReferenced ? 'tech.sitemap.missingRef' : 'tech.sitemap.missing',
       }),
     );
   } else if (!sitemapValid) {
     checks.push(
       buildCheck('tech.sitemap', 'warn', {
-        message: 'sitemap.xml responde pero no parece un XML de sitemap válido.',
+        messageKey: 'tech.sitemap.invalid',
       }),
     );
   } else {
     checks.push(
       buildCheck('tech.sitemap', sitemapReferenced ? 'pass' : 'warn', {
-        message: sitemapReferenced
-          ? 'sitemap.xml válido y referenciado desde robots.txt.'
-          : 'sitemap.xml válido, pero no está referenciado en robots.txt.',
+        messageKey: sitemapReferenced ? 'tech.sitemap.validRef' : 'tech.sitemap.validNoRef',
       }),
     );
   }
@@ -167,13 +151,14 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
   const depth = parsedUrl.pathname.split('/').filter(Boolean).length;
   const hasUpper = /[A-Z]/.test(parsedUrl.pathname);
   const dirty = hasTracking || depth > 4 || hasUpper;
+  const reasons: string[] = [];
+  if (hasTracking) reasons.push('tech.urlClean.tracking');
+  if (depth > 4) reasons.push('tech.urlClean.depth');
+  if (hasUpper) reasons.push('tech.urlClean.upper');
   checks.push(
     buildCheck('tech.url-clean', dirty ? 'warn' : 'pass', {
-      message: dirty
-        ? `URL mejorable${hasTracking ? ' (parámetros de tracking)' : ''}${
-            depth > 4 ? ' (profundidad alta)' : ''
-          }${hasUpper ? ' (mayúsculas)' : ''}.`
-        : 'URL limpia y legible.',
+      messageKey: dirty ? 'tech.urlClean.dirty' : 'tech.urlClean.clean',
+      messageParams: dirty ? { reasons } : undefined,
     }),
   );
 

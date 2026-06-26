@@ -1,4 +1,7 @@
+'use client';
+
 import type { CategoryResult } from '@/lib/types';
+import { useI18n } from '@/lib/i18n/context';
 import CheckRow from './CheckRow';
 
 export type CheckFilter = 'all' | 'fail' | 'warn';
@@ -16,25 +19,25 @@ function barColor(score: number): string {
 }
 
 export default function CategoryCard({ category, filter }: CategoryCardProps) {
+  const { t } = useI18n();
+  const label = t(`category.${category.id}`);
+
   // Backend-gated category (performance): render as a locked stub with a CTA.
   if (category.requiresBackend) {
     return (
-      <section className="category glass category-locked" aria-label={`${category.label} (bloqueado)`}>
+      <section className="category glass category-locked" aria-label={t('categoryCard.lockedAria', { label })}>
         <header className="category-head">
           <div className="category-title-row">
-            <h3 className="category-title">{category.label}</h3>
+            <h3 className="category-title">{label}</h3>
             <span className="lock-badge" aria-hidden="true">
               🔒
             </span>
           </div>
         </header>
         <div className="locked-body">
-          <p className="muted">
-            La medición de Core Web Vitals (LCP, INP, CLS) requiere un backend con datos
-            de campo y no puede ejecutarse de forma segura en el navegador.
-          </p>
+          <p className="muted">{t('categoryCard.lockedBody')}</p>
           <button className="btn btn-ghost" type="button" disabled>
-            Disponible en la versión Pro
+            {t('categoryCard.proCta')}
           </button>
         </div>
       </section>
@@ -47,10 +50,10 @@ export default function CategoryCard({ category, filter }: CategoryCardProps) {
   });
 
   return (
-    <section className="category glass" aria-label={category.label}>
+    <section className="category glass" aria-label={label}>
       <header className="category-head">
         <div className="category-title-row">
-          <h3 className="category-title">{category.label}</h3>
+          <h3 className="category-title">{label}</h3>
           <span className="category-score" style={{ color: barColor(category.score) }}>
             {category.score}
             <span className="category-score-max">/100</span>
@@ -62,7 +65,7 @@ export default function CategoryCard({ category, filter }: CategoryCardProps) {
           aria-valuenow={category.score}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Sub-score de ${category.label}`}
+          aria-label={t('categoryCard.scoreAria', { label })}
         >
           <div
             className="category-bar-fill"
@@ -75,9 +78,7 @@ export default function CategoryCard({ category, filter }: CategoryCardProps) {
         {visible.length > 0 ? (
           visible.map((check) => <CheckRow key={check.id} check={check} />)
         ) : (
-          <p className="faint category-empty">
-            Sin elementos para este filtro en esta categoría.
-          </p>
+          <p className="faint category-empty">{t('dashboard.categoryEmpty')}</p>
         )}
       </div>
     </section>

@@ -127,25 +127,30 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     .join(', ');
 
   let searchStatus: CheckStatus;
-  let searchMsg: string;
+  let searchKey: string;
+  let searchParams: Record<string, string | number> | undefined;
   if (!robots.ok) {
     searchStatus = 'pass';
-    searchMsg =
-      'Sin robots.txt: por defecto todos los bots de búsqueda de IA pueden rastrear y citar la página.';
+    searchKey = 'geo.aiSearchBots.noRobots';
   } else if (blockedSearch.length === searchBots.length) {
     searchStatus = 'fail';
-    searchMsg = `Todos los bots de búsqueda de IA están bloqueados: tu contenido no podrá citarse en IA. (${searchSummary})`;
+    searchKey = 'geo.aiSearchBots.allBlocked';
+    searchParams = { summary: searchSummary };
   } else if (blockedSearch.length > 0) {
     searchStatus = 'warn';
-    searchMsg = `${blockedSearch.length} de ${searchBots.length} bots de búsqueda de IA bloqueados. (${searchSummary})`;
+    searchKey = 'geo.aiSearchBots.someBlocked';
+    searchParams = { blocked: blockedSearch.length, total: searchBots.length, summary: searchSummary };
   } else {
     searchStatus = 'pass';
-    searchMsg = `Todos los bots de búsqueda de IA pueden rastrear la página. (${searchSummary})`;
+    searchKey = 'geo.aiSearchBots.allowed';
+    searchParams = { summary: searchSummary };
   }
   checks.push(
     buildCheck('geo.ai-search-bots', searchStatus, {
-      value: `${searchBots.length - blockedSearch.length}/${searchBots.length} permitidos`,
-      message: searchMsg,
+      valueKey: 'botsAllowed',
+      valueParams: { allowed: searchBots.length - blockedSearch.length, total: searchBots.length },
+      messageKey: searchKey,
+      messageParams: searchParams,
     }),
   );
 
@@ -157,10 +162,12 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     .join(', ');
   checks.push(
     buildCheck('geo.ai-training-bots', 'info', {
-      value: `${trainingBots.length - blockedTraining.length}/${trainingBots.length} permitidos`,
-      message: robots.ok
-        ? `Bots de entrenamiento: ${blockedTraining.length} bloqueados. Es una decisión legítima y no afecta a las citas. (${trainingSummary})`
-        : 'Sin robots.txt: todos los bots de entrenamiento pueden usar el contenido.',
+      valueKey: 'botsAllowed',
+      valueParams: { allowed: trainingBots.length - blockedTraining.length, total: trainingBots.length },
+      messageKey: robots.ok ? 'geo.aiTrainingBots.info' : 'geo.aiTrainingBots.noRobots',
+      messageParams: robots.ok
+        ? { blocked: blockedTraining.length, summary: trainingSummary }
+        : undefined,
     }),
   );
 
@@ -168,7 +175,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   if (!llms.ok) {
     checks.push(
       buildCheck('geo.llms-txt', 'fail', {
-        message: 'No se encontró /llms.txt.',
+        messageKey: 'geo.llmsTxt.missing',
       }),
     );
   } else {
@@ -177,9 +184,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     const structured = hasHeading || hasLinks;
     checks.push(
       buildCheck('geo.llms-txt', structured ? 'pass' : 'warn', {
-        message: structured
-          ? 'llms.txt presente con estructura (encabezados/enlaces Markdown).'
-          : 'llms.txt presente pero sin una estructura Markdown reconocible.',
+        messageKey: structured ? 'geo.llmsTxt.structured' : 'geo.llmsTxt.unstructured',
       }),
     );
   }
@@ -193,18 +198,18 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   const openingHasSubstance =
     !!firstSubstantial && opening.includes(firstWords(firstSubstantial, 8));
   let blufStatus: CheckStatus;
-  let blufMsg: string;
+  let blufKey: string;
   if (!firstSubstantial) {
     blufStatus = 'fail';
-    blufMsg = 'No hay un párrafo sustancial al inicio que actúe como respuesta directa.';
+    blufKey = 'geo.bluf.none';
   } else if (openingHasSubstance) {
     blufStatus = 'pass';
-    blufMsg = 'Hay un párrafo con respuesta directa dentro de las primeras ~150 palabras.';
+    blufKey = 'geo.bluf.ok';
   } else {
     blufStatus = 'warn';
-    blufMsg = 'Hay contenido sustancial, pero la respuesta directa no aparece al principio.';
+    blufKey = 'geo.bluf.notLeading';
   }
-  checks.push(buildCheck('geo.bluf', blufStatus, { message: blufMsg }));
+  checks.push(buildCheck('geo.bluf', blufStatus, { messageKey: blufKey }));
 
   // ── Data density (numbers/stats/percentages) ─────────────────────────────
   const dataMatches = text.match(/\b\d+([.,]\d+)?\s?(%|por ciento|€|\$|millones?|mil)?\b/gi) || [];
@@ -217,13 +222,16 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   else dataStatus = 'fail';
   checks.push(
     buildCheck('geo.data-density', dataStatus, {
-      value: `${dataCount} cifras${percentMatches.length ? `, ${percentMatches.length} %` : ''}`,
-      message:
+      valueKey: percentMatches.length ? 'figuresPct' : 'figures',
+      valueParams: percentMatches.length
+        ? { n: dataCount, pct: percentMatches.length }
+        : { n: dataCount },
+      messageKey:
         dataStatus === 'pass'
-          ? 'Buena densidad de datos concretos (cifras, porcentajes); contenido citable.'
+          ? 'geo.dataDensity.ok'
           : dataStatus === 'warn'
-            ? 'Pocos datos concretos; añade más cifras verificables.'
-            : 'Apenas hay datos concretos; el contenido es difícil de citar por la IA.',
+            ? 'geo.dataDensity.few'
+            : 'geo.dataDensity.none',
     }),
   );
 
@@ -241,15 +249,13 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   if (promoHits.length === 0) promoStatus = 'pass';
   else if (promoHits.length <= 3) promoStatus = 'warn';
   else promoStatus = 'fail';
+  const promoHitsStr = `${promoHits.slice(0, 4).join(', ')}${promoHits.length > 4 ? '…' : ''}`;
   checks.push(
     buildCheck('geo.promotional-tone', promoStatus, {
-      value: `${promoHits.length} expresiones`,
-      message:
-        promoStatus === 'pass'
-          ? 'Tono neutral y objetivo, adecuado para ser citado por la IA.'
-          : `Se detectó lenguaje promocional (${promoHits.slice(0, 4).join(', ')}${
-              promoHits.length > 4 ? '…' : ''
-            }) que reduce la credibilidad ante la IA.`,
+      valueKey: 'expressions',
+      valueParams: { n: promoHits.length },
+      messageKey: promoStatus === 'pass' ? 'geo.promotionalTone.neutral' : 'geo.promotionalTone.promo',
+      messageParams: promoStatus === 'pass' ? undefined : { hits: promoHitsStr },
     }),
   );
 
@@ -261,11 +267,9 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   const questionHeadings = headings.filter((h) => questionRe.test(h));
   checks.push(
     buildCheck('geo.qa-format', questionHeadings.length >= 2 ? 'pass' : 'warn', {
-      value: `${questionHeadings.length} preguntas`,
-      message:
-        questionHeadings.length >= 2
-          ? 'El contenido usa preguntas como encabezados (formato Q&A).'
-          : 'Pocas o ninguna pregunta como encabezado; el formato Q&A favorece la extracción por IA.',
+      valueKey: 'questions',
+      valueParams: { n: questionHeadings.length },
+      messageKey: questionHeadings.length >= 2 ? 'geo.qaFormat.ok' : 'geo.qaFormat.few',
     }),
   );
 
@@ -274,10 +278,8 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('geo.tables', tables > 0 ? 'pass' : 'warn', {
       value: tables,
-      message:
-        tables > 0
-          ? `Hay ${tables} tabla(s) de datos, fáciles de extraer por la IA.`
-          : 'No hay tablas; para datos comparables, una tabla es más citable que el texto.',
+      messageKey: tables > 0 ? 'geo.tables.ok' : 'geo.tables.none',
+      messageParams: tables > 0 ? { count: tables } : undefined,
     }),
   );
 
@@ -290,7 +292,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   if (mediaCount === 0) {
     checks.push(
       buildCheck('geo.transcript', 'na', {
-        message: 'No hay vídeos ni embeds que requieran transcripción.',
+        messageKey: 'geo.transcript.na',
       }),
     );
   } else {
@@ -299,10 +301,9 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     const hasTranscript = !!hasTrack || mentionsTranscript;
     checks.push(
       buildCheck('geo.transcript', hasTranscript ? 'pass' : 'warn', {
-        value: `${mediaCount} medios`,
-        message: hasTranscript
-          ? 'Se detecta transcripción/subtítulos junto al contenido audiovisual.'
-          : 'Hay vídeo/embed sin transcripción textual; ese contenido es invisible para la IA.',
+        valueKey: 'media',
+        valueParams: { n: mediaCount },
+        messageKey: hasTranscript ? 'geo.transcript.ok' : 'geo.transcript.missing',
       }),
     );
   }
@@ -313,18 +314,28 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   const divCount = doc.querySelectorAll('div').length;
   const hasArticleOrMain = !!doc.querySelector('article, main');
   let semStatus: CheckStatus;
-  let semMsg: string;
+  let semKey: string;
+  let semParams: Record<string, string | number>;
   if (semanticCount === 0) {
     semStatus = 'fail';
-    semMsg = `Estructura tipo "div-soup" (${divCount} divs, 0 elementos semánticos).`;
+    semKey = 'geo.semanticHtml.divSoup';
+    semParams = { divs: divCount };
   } else if (hasArticleOrMain && semanticCount >= 3) {
     semStatus = 'pass';
-    semMsg = `Buen HTML semántico (${semanticCount} elementos semánticos).`;
+    semKey = 'geo.semanticHtml.good';
+    semParams = { count: semanticCount };
   } else {
     semStatus = 'warn';
-    semMsg = `Algo de HTML semántico (${semanticCount} elementos), pero predominan los divs (${divCount}).`;
+    semKey = 'geo.semanticHtml.some';
+    semParams = { count: semanticCount, divs: divCount };
   }
-  checks.push(buildCheck('geo.semantic-html', semStatus, { value: semanticCount, message: semMsg }));
+  checks.push(
+    buildCheck('geo.semantic-html', semStatus, {
+      value: semanticCount,
+      messageKey: semKey,
+      messageParams: semParams,
+    }),
+  );
 
   // ── JavaScript dependency (heuristic) ────────────────────────────────────
   const scriptSrc = doc.querySelectorAll('script[src]').length;
@@ -333,18 +344,29 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     doc.querySelector('noscript')?.textContent || '',
   );
   let jsStatus: CheckStatus;
-  let jsMsg: string;
+  let jsKey: string;
+  let jsParams: Record<string, string | number>;
   if (words < 50 && (scriptSrc > 0 || spaRoot)) {
     jsStatus = 'fail';
-    jsMsg = `El HTML inicial casi no tiene texto (${words} palabras) y depende de JavaScript: invisible para muchos rastreadores de IA.`;
+    jsKey = 'geo.jsDependency.fail';
+    jsParams = { words };
   } else if ((words < 200 && scriptSrc > 5) || (spaRoot && words < 300) || noscriptWarn) {
     jsStatus = 'warn';
-    jsMsg = `Posible dependencia de JavaScript (${words} palabras en HTML, ${scriptSrc} scripts).`;
+    jsKey = 'geo.jsDependency.warn';
+    jsParams = { words, scripts: scriptSrc };
   } else {
     jsStatus = 'pass';
-    jsMsg = `El contenido principal está en el HTML inicial (${words} palabras), legible sin ejecutar JavaScript.`;
+    jsKey = 'geo.jsDependency.pass';
+    jsParams = { words };
   }
-  checks.push(buildCheck('geo.js-dependency', jsStatus, { value: `${words} palabras`, message: jsMsg }));
+  checks.push(
+    buildCheck('geo.js-dependency', jsStatus, {
+      valueKey: 'words',
+      valueParams: { n: words },
+      messageKey: jsKey,
+      messageParams: jsParams,
+    }),
+  );
 
   return checks;
 }

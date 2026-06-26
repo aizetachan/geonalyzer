@@ -1,4 +1,4 @@
-// Bloque C — Schema (JSON-LD).
+// Block C — Schema (JSON-LD).
 
 import type { CheckResult, CheckStatus } from '../types';
 import { buildCheck } from '../checks-catalog';
@@ -62,10 +62,8 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
   checks.push(
     buildCheck('schema.jsonld-present', blocks > 0 ? 'pass' : 'fail', {
       value: blocks,
-      message:
-        blocks > 0
-          ? `Se encontraron ${blocks} bloque(s) JSON-LD.`
-          : 'No hay datos estructurados JSON-LD.',
+      messageKey: blocks > 0 ? 'schema.jsonldPresent.present' : 'schema.jsonldPresent.none',
+      messageParams: blocks > 0 ? { blocks } : undefined,
     }),
   );
 
@@ -74,17 +72,16 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
   if (blocks === 0) {
     checks.push(
       buildCheck('schema.types-detected', 'na', {
-        message: 'Sin JSON-LD que analizar.',
+        messageKey: 'schema.typesDetected.na',
       }),
     );
   } else {
+    const types = allTypes.join(', ');
     checks.push(
       buildCheck('schema.types-detected', allTypes.length > 0 ? 'pass' : 'warn', {
-        value: allTypes.join(', ') || undefined,
-        message:
-          allTypes.length > 0
-            ? `Tipos detectados: ${allTypes.join(', ')}.`
-            : 'Hay JSON-LD pero sin @type reconocible.',
+        value: types || undefined,
+        messageKey: allTypes.length > 0 ? 'schema.typesDetected.detected' : 'schema.typesDetected.noType',
+        messageParams: allTypes.length > 0 ? { types } : undefined,
       }),
     );
   }
@@ -96,7 +93,7 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
   if (!orgNode) {
     checks.push(
       buildCheck('schema.org-sameas', 'info', {
-        message: 'No hay schema Organization en la página.',
+        messageKey: 'schema.orgSameas.noOrg',
       }),
     );
   } else {
@@ -105,9 +102,7 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
       (Array.isArray(sameAs) && sameAs.length > 0) || typeof sameAs === 'string';
     checks.push(
       buildCheck('schema.org-sameas', hasSameAs ? 'pass' : 'warn', {
-        message: hasSameAs
-          ? 'Organization incluye sameAs con perfiles vinculados.'
-          : 'Organization sin sameAs; añade los perfiles oficiales para reforzar la entidad.',
+        messageKey: hasSameAs ? 'schema.orgSameas.has' : 'schema.orgSameas.missing',
       }),
     );
   }
@@ -119,7 +114,7 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
   if (!isEditorial) {
     checks.push(
       buildCheck('schema.author-profile', 'na', {
-        message: 'No es contenido editorial (Article/ProfilePage); no aplica.',
+        messageKey: 'schema.authorProfile.na',
       }),
     );
   } else {
@@ -128,27 +123,30 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
     );
     checks.push(
       buildCheck('schema.author-profile', hasAuthor ? 'pass' : 'warn', {
-        message: hasAuthor
-          ? 'El contenido editorial declara autor.'
-          : 'Contenido editorial sin autor declarado; añade author (Person) para E-E-A-T.',
+        messageKey: hasAuthor ? 'schema.authorProfile.has' : 'schema.authorProfile.missing',
       }),
     );
   }
 
   // Syntax validity
   let syntaxStatus: CheckStatus;
-  let syntaxMsg: string;
+  let syntaxKey: string;
   if (blocks === 0) {
     syntaxStatus = 'na';
-    syntaxMsg = 'Sin JSON-LD que validar.';
+    syntaxKey = 'schema.syntaxValid.na';
   } else if (invalid === 0) {
     syntaxStatus = 'pass';
-    syntaxMsg = 'Todos los bloques JSON-LD tienen sintaxis válida.';
+    syntaxKey = 'schema.syntaxValid.valid';
   } else {
     syntaxStatus = 'fail';
-    syntaxMsg = `${invalid} de ${blocks} bloque(s) JSON-LD tienen errores de sintaxis y serán ignorados.`;
+    syntaxKey = 'schema.syntaxValid.invalid';
   }
-  checks.push(buildCheck('schema.syntax-valid', syntaxStatus, { message: syntaxMsg }));
+  checks.push(
+    buildCheck('schema.syntax-valid', syntaxStatus, {
+      messageKey: syntaxKey,
+      messageParams: blocks > 0 && invalid > 0 ? { invalid, blocks } : undefined,
+    }),
+  );
 
   return checks;
 }
