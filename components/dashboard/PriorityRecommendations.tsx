@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import type { PriorityCheck } from '@/lib/insights';
-import CheckRow from '../CheckRow';
+import PriorityCard from './PriorityCard';
 
 export default function PriorityRecommendations({ items }: { items: PriorityCheck[] }) {
   const { t } = useI18n();
@@ -17,13 +17,7 @@ export default function PriorityRecommendations({ items }: { items: PriorityChec
       {items.length > 0 ? (
         <ol className="priority-list">
           {items.map((item, i) => (
-            <li key={item.check.id} className="priority-item">
-              <span className="priority-rank" aria-hidden="true">{i + 1}</span>
-              <div className="priority-body">
-                <span className="priority-cat">{t(`category.${item.categoryId}`)}</span>
-                <CheckRow check={item.check} />
-              </div>
-            </li>
+            <PriorityCard key={item.check.id} item={item} rank={i + 1} />
           ))}
         </ol>
       ) : (
