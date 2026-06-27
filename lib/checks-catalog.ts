@@ -3,7 +3,7 @@
 // dictionaries keyed by the same check id; the dynamic part (status / value /
 // message) is decided by the analysis modules and merged here via `buildCheck`.
 
-import type { CheckResult, CheckStatus, MessageParams } from './types';
+import type { CheckResult, CheckStatus, MessageParams, EvidenceItem } from './types';
 
 export interface CheckMeta {
   /** Relative weight inside the category. Higher = more impactful. */
@@ -87,6 +87,7 @@ export interface DynamicCheck {
   value?: string | number;
   valueKey?: string;
   valueParams?: MessageParams;
+  evidence?: EvidenceItem[];
 }
 
 /**
@@ -112,6 +113,7 @@ export function buildCheck(
     value: dynamic.value,
     valueKey: dynamic.valueKey,
     valueParams: dynamic.valueParams,
+    evidence: dynamic.evidence,
     weight: meta.weight,
     docsRef: meta.docsRef,
   };

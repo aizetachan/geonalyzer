@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/lib/i18n/context';
 import { useTour } from './TourContext';
-import CheckDetail from '../CheckDetail';
 
 export default function TourOverlay() {
   const { t, tCheck } = useI18n();
@@ -46,7 +45,21 @@ export default function TourOverlay() {
             ✕
           </button>
         </div>
-        <CheckDetail check={focused} />
+        <div className="tour-detail">
+          <div className="detail-block">
+            <span className="detail-label">{t('detail.why')}</span>
+            <p>{tCheck(focused.id).why}</p>
+          </div>
+          <div className="detail-block">
+            <span className="detail-label">{t('detail.howToFix')}</span>
+            <p>{tCheck(focused.id).howToFix}</p>
+          </div>
+          {focused.docsRef && (
+            <a className="detail-docs" href={focused.docsRef} target="_blank" rel="noopener noreferrer">
+              {t('detail.moreInfo')}
+            </a>
+          )}
+        </div>
       </div>
     </div>,
     document.body,

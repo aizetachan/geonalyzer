@@ -3,6 +3,7 @@
 import type { CheckResult, CheckStatus } from '../types';
 import { buildCheck } from '../checks-catalog';
 import type { AnalysisContext } from './context';
+import { truncate } from './utils';
 
 interface ParsedJsonLd {
   /** Successfully parsed JSON-LD objects (flattened from @graph). */
@@ -64,6 +65,7 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
       value: blocks,
       messageKey: blocks > 0 ? 'schema.jsonldPresent.present' : 'schema.jsonldPresent.none',
       messageParams: blocks > 0 ? { blocks } : undefined,
+      evidence: blocks > 0 ? [{ labelKey: 'evidence.jsonld.blocks', value: blocks }] : undefined,
     }),
   );
 
@@ -82,6 +84,10 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
         value: types || undefined,
         messageKey: allTypes.length > 0 ? 'schema.typesDetected.detected' : 'schema.typesDetected.noType',
         messageParams: allTypes.length > 0 ? { types } : undefined,
+        evidence:
+          allTypes.length > 0
+            ? [{ labelKey: 'evidence.schemaTypes.list', value: truncate(types, 200) }]
+            : undefined,
       }),
     );
   }
@@ -98,11 +104,18 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
     );
   } else {
     const sameAs = orgNode['sameAs'];
-    const hasSameAs =
-      (Array.isArray(sameAs) && sameAs.length > 0) || typeof sameAs === 'string';
+    const sameAsList = Array.isArray(sameAs)
+      ? sameAs.filter((x): x is string => typeof x === 'string')
+      : typeof sameAs === 'string'
+        ? [sameAs]
+        : [];
+    const hasSameAs = sameAsList.length > 0;
     checks.push(
       buildCheck('schema.org-sameas', hasSameAs ? 'pass' : 'warn', {
         messageKey: hasSameAs ? 'schema.orgSameas.has' : 'schema.orgSameas.missing',
+        evidence: hasSameAs
+          ? [{ labelKey: 'evidence.orgSameas.profiles', value: truncate(sameAsList.slice(0, 5).join(', '), 200) }]
+          : undefined,
       }),
     );
   }
@@ -118,12 +131,22 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
       }),
     );
   } else {
-    const hasAuthor = nodes.some(
-      (n) => 'author' in n && !!n['author'],
-    );
+    const authorNode = nodes.find((n) => 'author' in n && !!n['author']);
+    const hasAuthor = !!authorNode;
+    let authorName = '';
+    const a = authorNode?.['author'];
+    if (typeof a === 'string') authorName = a;
+    else if (a && typeof a === 'object') {
+      const nm = (a as Record<string, unknown>)['name'];
+      if (typeof nm === 'string') authorName = nm;
+    }
     checks.push(
       buildCheck('schema.author-profile', hasAuthor ? 'pass' : 'warn', {
         messageKey: hasAuthor ? 'schema.authorProfile.has' : 'schema.authorProfile.missing',
+        evidence:
+          hasAuthor && authorName
+            ? [{ labelKey: 'evidence.authorProfile.name', value: truncate(authorName) }]
+            : undefined,
       }),
     );
   }
@@ -145,6 +168,10 @@ export function analyzeSchema(ctx: AnalysisContext): CheckResult[] {
     buildCheck('schema.syntax-valid', syntaxStatus, {
       messageKey: syntaxKey,
       messageParams: blocks > 0 && invalid > 0 ? { invalid, blocks } : undefined,
+      evidence:
+        blocks > 0 && invalid > 0
+          ? [{ labelKey: 'evidence.syntaxValid.invalid', value: `${invalid}/${blocks}` }]
+          : undefined,
     }),
   );
 

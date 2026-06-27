@@ -9,6 +9,21 @@ export type CheckStatus = 'pass' | 'warn' | 'fail' | 'info' | 'na';
 /** Parameters interpolated into a localized template. Arrays are lists of keys. */
 export type MessageParams = Record<string, string | number | string[]>;
 
+/**
+ * One row of concrete, page-specific evidence shown in the inline check
+ * dropdown. Language-agnostic: `labelKey` (a dotted path under i18n `evidence.*`)
+ * localizes the row label; `value` is raw page data rendered verbatim (the
+ * actual title text, canonical URL, blocked bot names…); `valueKey` (+ params)
+ * is an alternative localized value reusing the `val.*` templates for derived
+ * figures (counts, ratios).
+ */
+export interface EvidenceItem {
+  labelKey: string;
+  value?: string | number;
+  valueKey?: string;
+  valueParams?: MessageParams;
+}
+
 export interface CheckResult {
   /** Stable identifier, unique within the whole app (e.g. "tech.https"). */
   id: string;
@@ -23,6 +38,8 @@ export interface CheckResult {
   valueKey?: string;
   /** Params interpolated into the value template. */
   valueParams?: MessageParams;
+  /** Page-specific evidence rows for the inline dropdown. Empty/absent → no dropdown. */
+  evidence?: EvidenceItem[];
   /** Relative weight of this check inside its category. */
   weight: number;
   /** Optional reference link for further reading. */

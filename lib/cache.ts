@@ -12,7 +12,7 @@ import type { AnalysisResult } from './types';
 import { normalizeUrl } from './analyzer';
 
 /** Bump to invalidate every stored entry after a result-shape change. */
-export const CACHE_VERSION = 1;
+export const CACHE_VERSION = 2;
 /** Entries older than this are treated as stale and refetched. */
 export const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
 

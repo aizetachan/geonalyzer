@@ -24,6 +24,12 @@ export function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
 
+/** Truncate a raw page value for display/storage, with an ellipsis. */
+export function truncate(s: string, max = 140): string {
+  const t = s.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
+}
+
 /** First N words of the visible text joined back into a string. */
 export function firstWords(text: string, n: number): string {
   return text.split(/\s+/).filter(Boolean).slice(0, n).join(' ');

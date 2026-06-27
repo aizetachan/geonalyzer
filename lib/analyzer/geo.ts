@@ -3,7 +3,7 @@
 import type { CheckResult, CheckStatus } from '../types';
 import { buildCheck } from '../checks-catalog';
 import type { AnalysisContext } from './context';
-import { getVisibleText, countWords, firstWords } from './utils';
+import { getVisibleText, countWords, firstWords, truncate } from './utils';
 
 // ── AI bot catalog (2026). Claude-Web and anthropic-ai are obsolete → excluded.
 type BotKind = 'training' | 'search';
@@ -145,12 +145,22 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     searchKey = 'geo.aiSearchBots.allowed';
     searchParams = { summary: searchSummary };
   }
+  const blockedSearchNames = blockedSearch.map((s) => s.bot.name).join(', ');
+  const allowedSearchNames = searchBots.filter((s) => s.allowed).map((s) => s.bot.name).join(', ');
+  const searchEvidence: { labelKey: string; value: string }[] = [];
+  if (robots.ok && blockedSearchNames) {
+    searchEvidence.push({ labelKey: 'evidence.bots.blocked', value: blockedSearchNames });
+  }
+  if (robots.ok && allowedSearchNames) {
+    searchEvidence.push({ labelKey: 'evidence.bots.allowed', value: allowedSearchNames });
+  }
   checks.push(
     buildCheck('geo.ai-search-bots', searchStatus, {
       valueKey: 'botsAllowed',
       valueParams: { allowed: searchBots.length - blockedSearch.length, total: searchBots.length },
       messageKey: searchKey,
       messageParams: searchParams,
+      evidence: searchEvidence.length ? searchEvidence : undefined,
     }),
   );
 
@@ -160,6 +170,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   const trainingSummary = trainingBots
     .map((s) => `${s.allowed ? '✓' : '✗'} ${s.bot.name}`)
     .join(', ');
+  const blockedTrainingNames = blockedTraining.map((s) => s.bot.name).join(', ');
   checks.push(
     buildCheck('geo.ai-training-bots', 'info', {
       valueKey: 'botsAllowed',
@@ -168,23 +179,37 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
       messageParams: robots.ok
         ? { blocked: blockedTraining.length, summary: trainingSummary }
         : undefined,
+      evidence:
+        robots.ok && blockedTrainingNames
+          ? [{ labelKey: 'evidence.bots.trainingBlocked', value: blockedTrainingNames }]
+          : undefined,
     }),
   );
 
   // ── llms.txt ─────────────────────────────────────────────────────────────
+  const llmsUrl = `${ctx.parsedUrl.origin}/llms.txt`;
   if (!llms.ok) {
     checks.push(
       buildCheck('geo.llms-txt', 'fail', {
         messageKey: 'geo.llmsTxt.missing',
+        evidence: [{ labelKey: 'evidence.llms.url', value: llmsUrl }],
       }),
     );
   } else {
     const hasHeading = /^#\s+/m.test(llms.body) || /^#\s/.test(llms.body.trim());
     const hasLinks = /\[.+?\]\(.+?\)/.test(llms.body);
     const structured = hasHeading || hasLinks;
+    const firstHeading = (llms.body.split('\n').find((l) => /^#\s+/.test(l.trim())) || '')
+      .replace(/^#+\s*/, '')
+      .trim();
+    const llmsEvidence = [{ labelKey: 'evidence.llms.url', value: llmsUrl }];
+    if (firstHeading) {
+      llmsEvidence.push({ labelKey: 'evidence.llms.firstHeading', value: truncate(firstHeading, 120) });
+    }
     checks.push(
       buildCheck('geo.llms-txt', structured ? 'pass' : 'warn', {
         messageKey: structured ? 'geo.llmsTxt.structured' : 'geo.llmsTxt.unstructured',
+        evidence: llmsEvidence,
       }),
     );
   }
@@ -209,7 +234,14 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
     blufStatus = 'warn';
     blufKey = 'geo.bluf.notLeading';
   }
-  checks.push(buildCheck('geo.bluf', blufStatus, { messageKey: blufKey }));
+  checks.push(
+    buildCheck('geo.bluf', blufStatus, {
+      messageKey: blufKey,
+      evidence: firstSubstantial
+        ? [{ labelKey: 'evidence.bluf.opening', value: truncate(opening, 200) }]
+        : undefined,
+    }),
+  );
 
   // ── Data density (numbers/stats/percentages) ─────────────────────────────
   const dataMatches = text.match(/\b\d+([.,]\d+)?\s?(%|por ciento|€|\$|millones?|mil)?\b/gi) || [];
@@ -232,6 +264,10 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
           : dataStatus === 'warn'
             ? 'geo.dataDensity.few'
             : 'geo.dataDensity.none',
+      evidence: [
+        { labelKey: 'evidence.dataDensity.figures', value: dataCount },
+        { labelKey: 'evidence.dataDensity.percents', value: percentMatches.length },
+      ],
     }),
   );
 
@@ -256,6 +292,10 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
       valueParams: { n: promoHits.length },
       messageKey: promoStatus === 'pass' ? 'geo.promotionalTone.neutral' : 'geo.promotionalTone.promo',
       messageParams: promoStatus === 'pass' ? undefined : { hits: promoHitsStr },
+      evidence:
+        promoStatus === 'pass'
+          ? undefined
+          : [{ labelKey: 'evidence.promo.hits', value: truncate(promoHits.join(', '), 200) }],
     }),
   );
 
@@ -265,11 +305,21 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
   );
   const questionRe = /\?|^(qué|cómo|por qué|cuándo|dónde|cuál|quién|cuánto|what|how|why|when|where|which|who)\b/i;
   const questionHeadings = headings.filter((h) => questionRe.test(h));
+  const qaEvidence: { labelKey: string; value: string | number }[] = [
+    { labelKey: 'evidence.qa.count', value: questionHeadings.length },
+  ];
+  if (questionHeadings.length > 0) {
+    qaEvidence.push({
+      labelKey: 'evidence.qa.samples',
+      value: questionHeadings.slice(0, 2).map((h) => truncate(h, 80)).join(' · '),
+    });
+  }
   checks.push(
     buildCheck('geo.qa-format', questionHeadings.length >= 2 ? 'pass' : 'warn', {
       valueKey: 'questions',
       valueParams: { n: questionHeadings.length },
       messageKey: questionHeadings.length >= 2 ? 'geo.qaFormat.ok' : 'geo.qaFormat.few',
+      evidence: qaEvidence,
     }),
   );
 
@@ -280,6 +330,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
       value: tables,
       messageKey: tables > 0 ? 'geo.tables.ok' : 'geo.tables.none',
       messageParams: tables > 0 ? { count: tables } : undefined,
+      evidence: tables > 0 ? [{ labelKey: 'evidence.tables.count', value: tables }] : undefined,
     }),
   );
 
@@ -304,6 +355,7 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
         valueKey: 'media',
         valueParams: { n: mediaCount },
         messageKey: hasTranscript ? 'geo.transcript.ok' : 'geo.transcript.missing',
+        evidence: [{ labelKey: 'evidence.transcript.mediaCount', value: mediaCount }],
       }),
     );
   }
@@ -334,6 +386,10 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
       value: semanticCount,
       messageKey: semKey,
       messageParams: semParams,
+      evidence: [
+        { labelKey: 'evidence.semantic.semanticCount', value: semanticCount },
+        { labelKey: 'evidence.semantic.divCount', value: divCount },
+      ],
     }),
   );
 
@@ -365,6 +421,10 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
       valueParams: { n: words },
       messageKey: jsKey,
       messageParams: jsParams,
+      evidence: [
+        { labelKey: 'evidence.js.words', value: words },
+        { labelKey: 'evidence.js.scripts', value: scriptSrc },
+      ],
     }),
   );
 
