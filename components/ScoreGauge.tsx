@@ -40,7 +40,7 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          style={{ stroke: 'var(--gauge-track)' }}
           strokeWidth={stroke}
         />
         <circle

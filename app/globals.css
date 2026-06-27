@@ -1,19 +1,70 @@
+/* Theme-agnostic tokens */
 :root {
-  /* Palette — dark base with indigo/lavender accents */
-  --bg: #0a0a0f;
-  --bg-2: #0e0e18;
-  --surface: rgba(255, 255, 255, 0.04);
-  --surface-strong: rgba(255, 255, 255, 0.07);
-  --border: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+}
 
-  --text: #ecebf5;
-  --text-dim: #a8a6c0;
-  --text-faint: #6f6d88;
+/* ── Light theme (default) — openlayer-style: white, blue + teal ─────────── */
+:root,
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-2: #f6f8fb;
+  --surface: #ffffff;
+  --surface-strong: #eef2f8;
+  --border: #e6e8ee;
+  --border-strong: #d3d8e3;
 
-  --indigo: #818cf8;
-  --indigo-strong: #6366f1;
-  --lavender: #c4b5fd;
+  --text: #0c1322;
+  --text-dim: #5b6576;
+  --text-faint: #8b94a3;
+
+  --indigo: #2563eb; /* primary blue */
+  --indigo-strong: #1d4ed8;
+  --lavender: #0891b2; /* teal accent */
+  --accent: #06b6d4;
+
+  --pass: #16a34a;
+  --warn: #d97706;
+  --fail: #e23b3b;
+  --info: #2563eb;
+  --na: #94a3b8;
+
+  --pass-tint: rgba(22, 163, 74, 0.12);
+  --warn-tint: rgba(217, 119, 6, 0.14);
+  --fail-tint: rgba(226, 59, 59, 0.12);
+  --primary-tint: rgba(37, 99, 235, 0.1);
+
+  --gauge-track: #e9edf4;
+  --row-hover: rgba(16, 24, 40, 0.04);
+  --scrim: rgba(16, 24, 40, 0.45);
+  --navbar-bg: rgba(255, 255, 255, 0.82);
+  --btn-primary-text: #ffffff;
+
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 30px rgba(16, 24, 40, 0.06);
+  --body-bg:
+    radial-gradient(900px 480px at 100% -10%, rgba(6, 182, 212, 0.06), transparent 60%),
+    radial-gradient(1000px 560px at 0% -8%, rgba(37, 99, 235, 0.06), transparent 55%);
+}
+
+/* ── Dark theme — openlayer-style: deep blue, cleaner than before ────────── */
+[data-theme="dark"] {
+  --bg: #0a0e1a;
+  --bg-2: #0b1020;
+  --surface: #121a2b;
+  --surface-strong: #182338;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --text: #e8ecf5;
+  --text-dim: #9aa4b8;
+  --text-faint: #6b7488;
+
+  --indigo: #4f7cff;
+  --indigo-strong: #3b6bff;
+  --lavender: #22d3ee;
+  --accent: #22d3ee;
 
   --pass: #34d399;
   --warn: #fbbf24;
@@ -21,9 +72,22 @@
   --info: #60a5fa;
   --na: #94a3b8;
 
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+  --pass-tint: rgba(52, 211, 153, 0.16);
+  --warn-tint: rgba(251, 191, 36, 0.16);
+  --fail-tint: rgba(248, 113, 113, 0.16);
+  --primary-tint: rgba(79, 124, 255, 0.18);
+
+  --gauge-track: rgba(255, 255, 255, 0.08);
+  --row-hover: rgba(255, 255, 255, 0.04);
+  --scrim: rgba(3, 6, 14, 0.66);
+  --navbar-bg: rgba(10, 14, 26, 0.72);
+  --btn-primary-text: #07101f;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 38px rgba(0, 0, 0, 0.4);
+  --body-bg:
+    radial-gradient(1000px 560px at 100% -10%, rgba(34, 211, 238, 0.07), transparent 60%),
+    radial-gradient(1100px 600px at 0% -8%, rgba(79, 124, 255, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
 }
 
 * {
@@ -38,34 +102,30 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(1100px 600px at 12% -8%, rgba(99, 102, 241, 0.16), transparent 60%),
-    radial-gradient(900px 520px at 92% 0%, rgba(196, 181, 253, 0.12), transparent 55%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  background-color: var(--bg-2);
+  background-image: var(--body-bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-      Roboto, Helvetica, Arial, sans-serif);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   line-height: 1.55;
   padding-top: 60px; /* room for the fixed navbar */
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a {
-  color: var(--lavender);
+  color: var(--indigo);
   text-decoration: none;
 }
 a:hover {
   text-decoration: underline;
 }
 
-/* ── Glass surfaces ─────────────────────────────────────────────────────── */
+/* ── Card surfaces ──────────────────────────────────────────────────────── */
 .glass {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
   box-shadow: var(--shadow);
 }
 
@@ -95,20 +155,20 @@ a:hover {
   transform: translateY(1px);
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--indigo-strong), var(--lavender));
-  color: #0b0b14;
+  background: var(--indigo);
+  color: #ffffff;
 }
 .btn-primary:hover {
-  filter: brightness(1.06);
+  background: var(--indigo-strong);
 }
 .btn-ghost {
-  background: var(--surface-strong);
+  background: var(--surface);
   color: var(--text);
   border-color: var(--border);
 }
 .btn-ghost:hover {
   border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-strong);
 }
 .btn:focus-visible,
 .input:focus-visible,
@@ -145,7 +205,7 @@ a:hover {
   right: 0;
   z-index: 50;
   height: 60px;
-  background: rgba(10, 10, 15, 0.72);
+  background: var(--navbar-bg);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
@@ -255,7 +315,7 @@ a:hover {
   text-align: left;
 }
 .lang-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--row-hover);
 }
 .lang-item:focus-visible {
   outline: 2px solid var(--indigo);
@@ -270,7 +330,7 @@ a:hover {
   font-weight: 600;
 }
 .lang-item-active .lang-name {
-  color: var(--lavender);
+  color: var(--indigo);
 }
 .lang-short {
   font-size: 0.78rem;
@@ -278,7 +338,7 @@ a:hover {
   letter-spacing: 0.04em;
 }
 .lang-check {
-  color: var(--lavender);
+  color: var(--indigo);
   font-size: 0.85rem;
 }
 
@@ -292,7 +352,7 @@ a:hover {
   margin-bottom: 64px;
 }
 .brand-mark {
-  color: var(--lavender);
+  color: var(--accent);
   font-size: 1.1rem;
 }
 .brand-name {
@@ -385,7 +445,7 @@ a:hover {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.12);
+  border: 3px solid var(--border);
   border-top-color: var(--indigo);
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
@@ -418,7 +478,7 @@ a:hover {
   color: var(--text-faint);
 }
 .step-active {
-  background: rgba(129, 140, 248, 0.12);
+  background: var(--primary-tint);
   color: var(--text);
   font-weight: 600;
 }
@@ -524,19 +584,19 @@ a:hover {
   margin-bottom: 12px;
 }
 .badge-critical {
-  background: rgba(248, 113, 113, 0.16);
+  background: var(--fail-tint);
   color: var(--fail);
 }
 .badge-improvable {
-  background: rgba(251, 191, 36, 0.16);
+  background: var(--warn-tint);
   color: var(--warn);
 }
 .badge-good {
-  background: rgba(129, 140, 248, 0.16);
+  background: var(--primary-tint);
   color: var(--indigo);
 }
 .badge-excellent {
-  background: rgba(52, 211, 153, 0.16);
+  background: var(--pass-tint);
   color: var(--pass);
 }
 .hero-title {
@@ -569,7 +629,8 @@ a:hover {
   padding: 16px 20px;
   font-size: 0.9rem;
   color: var(--text-dim);
-  border-color: rgba(251, 191, 36, 0.3);
+  border-color: var(--warn);
+  background: var(--warn-tint);
 }
 .warnings ul {
   margin: 6px 0 0 18px;
@@ -603,9 +664,9 @@ a:hover {
   color: var(--text);
 }
 .filter-active {
-  background: rgba(129, 140, 248, 0.16);
-  border-color: rgba(129, 140, 248, 0.4);
-  color: var(--lavender);
+  background: var(--primary-tint);
+  border-color: var(--indigo);
+  color: var(--indigo);
 }
 
 /* ── Category grid ──────────────────────────────────────────────────────── */
@@ -644,7 +705,7 @@ a:hover {
 }
 .category-bar {
   height: 7px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--gauge-track);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -703,7 +764,7 @@ a:hover {
   border-radius: 8px;
 }
 .check-row:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--row-hover);
 }
 .check-status {
   display: inline-flex;
@@ -754,7 +815,7 @@ a:hover {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--lavender);
+  color: var(--indigo);
   font-weight: 700;
 }
 .detail-block p {
@@ -875,14 +936,14 @@ a:hover {
   height: 14px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--gauge-track);
 }
 .dist-seg {
   height: 100%;
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .dist-seg + .dist-seg {
-  border-left: 1px solid rgba(10, 10, 15, 0.5);
+  border-left: 2px solid var(--surface);
 }
 .dist-legend {
   list-style: none;
@@ -957,8 +1018,8 @@ a:hover {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(129, 140, 248, 0.16);
-  color: var(--lavender);
+  background: var(--primary-tint);
+  color: var(--indigo);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -1008,8 +1069,9 @@ a:hover {
   padding: 4px 0;
 }
 
-/* ── Guided tour ────────────────────────────────────────────────────────── */
-.tour-toggle {
+/* ── Navbar icon buttons (guided tour + theme toggle) ───────────────────── */
+.tour-toggle,
+.theme-toggle {
   width: 38px;
   height: 38px;
   display: inline-flex;
@@ -1017,6 +1079,7 @@ a:hover {
   justify-content: center;
   font: inherit;
   font-weight: 700;
+  font-size: 1rem;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1024,17 +1087,19 @@ a:hover {
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
-.tour-toggle:hover {
+.tour-toggle:hover,
+.theme-toggle:hover {
   border-color: var(--border-strong);
   background: var(--surface-strong);
 }
-.tour-toggle:focus-visible {
+.tour-toggle:focus-visible,
+.theme-toggle:focus-visible {
   outline: 2px solid var(--indigo);
   outline-offset: 2px;
 }
 .tour-toggle-on {
-  background: linear-gradient(135deg, var(--indigo-strong), var(--lavender));
-  color: #0b0b14;
+  background: var(--indigo);
+  color: #ffffff;
   border-color: transparent;
 }
 /* Affordance while guided help is on. */
@@ -1042,15 +1107,15 @@ body.tour-on .check-row {
   cursor: help;
 }
 body.tour-on .check-row:hover {
-  background: rgba(129, 140, 248, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.35);
+  background: var(--primary-tint);
+  box-shadow: inset 0 0 0 1px var(--indigo);
 }
 
 .tour-backdrop {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(5, 5, 10, 0.62);
+  background: var(--scrim);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   display: flex;

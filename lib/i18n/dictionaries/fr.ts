@@ -111,6 +111,12 @@ const fr: Dictionary = {
     },
   },
 
+  theme: {
+    toggle: 'Changer de thème',
+    light: 'Thème clair',
+    dark: 'Thème sombre',
+  },
+
   tour: {
     toggle: 'Aide guidée',
     close: 'Fermer',

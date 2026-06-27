@@ -118,6 +118,12 @@ const en = {
     },
   },
 
+  theme: {
+    toggle: 'Toggle theme',
+    light: 'Light theme',
+    dark: 'Dark theme',
+  },
+
   tour: {
     toggle: 'Guided help',
     close: 'Close',

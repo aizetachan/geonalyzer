@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { useTour } from './tour/TourContext';
+import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
@@ -31,6 +32,7 @@ export default function Navbar() {
           <a className="navbar-link" href="https://9pm.ai" target="_blank" rel="noopener noreferrer">
             {t('nav.getHelp')}
           </a>
+          <ThemeToggle />
           <LanguageSwitcher />
         </nav>
       </div>
