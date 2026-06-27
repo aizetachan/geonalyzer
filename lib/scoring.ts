@@ -7,6 +7,7 @@
 // their weight proportionally among the rest — exactly the v1 requirement.
 
 import type { CategoryResult, CheckResult, CheckStatus, ScoreLabel } from './types';
+import { CHECKS, type Pillar } from './checks-catalog';
 
 /** Base category weights (sum = 100). */
 export const BASE_WEIGHTS: Record<string, number> = {
@@ -34,6 +35,28 @@ export function scoreChecks(checks: CheckResult[]): number {
     if (fraction === null) continue;
     weighted += fraction * check.weight;
     totalWeight += check.weight;
+  }
+  if (totalWeight === 0) return 0;
+  return Math.round((weighted / totalWeight) * 100);
+}
+
+/**
+ * Score a single pillar (SEO or GEO) by pooling every check tagged for that
+ * pillar across all categories and applying the same fraction × weight formula.
+ * A check tagged for both pillars contributes to both scores. Returns 0–100.
+ */
+export function scorePillar(categories: CategoryResult[], pillar: Pillar): number {
+  let weighted = 0;
+  let totalWeight = 0;
+  for (const cat of categories) {
+    for (const check of cat.checks) {
+      const meta = CHECKS[check.id];
+      if (!meta || !meta.pillars.includes(pillar)) continue;
+      const fraction = STATUS_FRACTION[check.status];
+      if (fraction === null) continue;
+      weighted += fraction * check.weight;
+      totalWeight += check.weight;
+    }
   }
   if (totalWeight === 0) return 0;
   return Math.round((weighted / totalWeight) * 100);

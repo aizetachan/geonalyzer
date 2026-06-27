@@ -5,7 +5,7 @@
 import type { AnalysisResult, CategoryResult } from '../types';
 import { AnalysisError } from '../types';
 import { fetchResource, probeResource } from '../fetcher';
-import { scoreChecks, scoreGlobal } from '../scoring';
+import { scoreChecks, scoreGlobal, scorePillar } from '../scoring';
 import type { AnalysisContext } from './context';
 import { analyzeTechnical } from './technical';
 import { analyzeOnPage } from './onpage';
@@ -115,11 +115,15 @@ export async function analyze(
   ];
 
   const globalScore = scoreGlobal(categories);
+  const seoScore = scorePillar(categories, 'seo');
+  const geoScore = scorePillar(categories, 'geo');
 
   return {
     url: parsedUrl.href,
     fetchedAt: new Date().toISOString(),
     globalScore,
+    seoScore,
+    geoScore,
     categories,
     meta: {
       proxyUsed: main.proxyUsed,

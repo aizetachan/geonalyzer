@@ -73,6 +73,13 @@ const en = {
     excellent: 'Excellent',
   },
 
+  pillar: {
+    seo: 'SEO',
+    geo: 'GEO',
+    seoDesc: 'What Google sees — it executes JavaScript.',
+    geoDesc: 'What AI engines see — raw HTML, no JavaScript.',
+  },
+
   dashboard: {
     heroAria: 'Global score',
     heroSub:
@@ -125,6 +132,8 @@ const en = {
     url: 'URL',
     analyzed: 'Analyzed',
     overall: 'Overall score',
+    seoScore: 'SEO score',
+    geoScore: 'GEO score',
     scores: 'Scores by category',
     findings: 'Findings',
     priority: 'Priority recommendations (by impact)',

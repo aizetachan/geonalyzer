@@ -66,6 +66,13 @@ const es: Dictionary = {
     excellent: 'Excelente',
   },
 
+  pillar: {
+    seo: 'SEO',
+    geo: 'GEO',
+    seoDesc: 'Lo que ve Google — ejecuta JavaScript.',
+    geoDesc: 'Lo que ven los motores de IA — HTML crudo, sin JavaScript.',
+  },
+
   dashboard: {
     heroAria: 'Puntuación global',
     heroSub:
@@ -118,6 +125,8 @@ const es: Dictionary = {
     url: 'URL',
     analyzed: 'Analizado',
     overall: 'Puntuación global',
+    seoScore: 'Puntuación SEO',
+    geoScore: 'Puntuación GEO',
     scores: 'Puntuaciones por categoría',
     findings: 'Hallazgos',
     priority: 'Recomendaciones prioritarias (por impacto)',

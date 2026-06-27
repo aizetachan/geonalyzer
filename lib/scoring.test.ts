@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreChecks, scoreGlobal, scoreLabel } from './scoring';
+import { scoreChecks, scoreGlobal, scoreLabel, scorePillar } from './scoring';
 import type { CategoryResult, CheckResult, CheckStatus } from './types';
 
 function check(status: CheckStatus, weight = 1): CheckResult {
@@ -74,6 +74,41 @@ describe('scoreGlobal', () => {
   it('ignores categories with unknown ids (zero base weight)', () => {
     const cats = [cat('technical', 50), cat('mystery', 100)];
     expect(scoreGlobal(cats)).toBe(50);
+  });
+});
+
+describe('scorePillar', () => {
+  function cat(id: string, checks: CheckResult[]): CategoryResult {
+    return { id, score: 0, checks };
+  }
+  function c(id: string, status: CheckStatus, weight = 1): CheckResult {
+    return { id, status, messageKey: 'x', weight };
+  }
+
+  it('a SEO-only failing check does not lower GEO', () => {
+    // tech.https → seo only; geo.bluf → geo only.
+    const cats = [cat('technical', [c('tech.https', 'fail', 3)]), cat('geo', [c('geo.bluf', 'pass', 3)])];
+    expect(scorePillar(cats, 'geo')).toBe(100);
+    expect(scorePillar(cats, 'seo')).toBe(0);
+  });
+
+  it('a both-pillar check counts in both scores', () => {
+    // onpage.title → both.
+    const cats = [cat('onpage', [c('onpage.title', 'fail', 3)])];
+    expect(scorePillar(cats, 'seo')).toBe(0);
+    expect(scorePillar(cats, 'geo')).toBe(0);
+  });
+
+  it('weights SEO checks and excludes other pillars', () => {
+    // tech.https (seo, w3) pass + tech.http-status (seo, w1) fail → 3/4 = 75.
+    const cats = [cat('technical', [c('tech.https', 'pass', 3), c('tech.http-status', 'fail', 1)])];
+    expect(scorePillar(cats, 'seo')).toBe(75);
+    expect(scorePillar(cats, 'geo')).toBe(0);
+  });
+
+  it('excludes info/na and unknown ids', () => {
+    const cats = [cat('geo', [c('geo.bluf', 'pass', 2), c('geo.transcript', 'na', 1), c('mystery', 'fail', 5)])];
+    expect(scorePillar(cats, 'geo')).toBe(100); // only geo.bluf scored; na excluded; unknown id ignored
   });
 });
 

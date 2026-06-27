@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import type { AnalysisResult } from '@/lib/types';
-import { scoreLabel } from '@/lib/scoring';
 import { globalDistribution, categoryRanking, priorityChecks } from '@/lib/insights';
 import { useI18n } from '@/lib/i18n/context';
-import ScoreGauge from './ScoreGauge';
 import CategoryCard, { type CheckFilter } from './CategoryCard';
+import PillarScore from './dashboard/PillarScore';
 import KpiHeader from './dashboard/KpiHeader';
 import StatusDistributionChart from './dashboard/StatusDistributionChart';
 import CategoryRanking from './dashboard/CategoryRanking';
@@ -28,7 +27,6 @@ const FILTERS: { id: CheckFilter; labelKey: string }[] = [
 export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardProps) {
   const { t, locale } = useI18n();
   const [filter, setFilter] = useState<CheckFilter>('all');
-  const labelKey = scoreLabel(result.globalScore);
 
   const dist = useMemo(() => globalDistribution(result), [result]);
   const ranking = useMemo(() => categoryRanking(result.categories), [result]);
@@ -52,9 +50,11 @@ export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardPr
     <div className="dashboard">
       {/* Hero */}
       <section className="hero glass" aria-label={t('dashboard.heroAria')}>
-        <ScoreGauge score={result.globalScore} size={208} />
+        <div className="hero-scores">
+          <PillarScore pillar="seo" score={result.seoScore} />
+          <PillarScore pillar="geo" score={result.geoScore} />
+        </div>
         <div className="hero-info">
-          <span className={`hero-badge badge-${labelKey}`}>{t(`score.${labelKey}`)}</span>
           <h1 className="hero-title">{host}</h1>
           <p className="muted hero-sub">{t('dashboard.heroSub')}</p>
           <p className="faint hero-meta">

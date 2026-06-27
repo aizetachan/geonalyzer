@@ -65,6 +65,10 @@ export interface AnalysisResult {
   fetchedAt: string;
   /** 0–100 weighted global score. */
   globalScore: number;
+  /** 0–100 SEO pillar score (what Google sees once it renders JS). */
+  seoScore: number;
+  /** 0–100 GEO pillar score (what AI crawlers see in the raw HTML). */
+  geoScore: number;
   categories: CategoryResult[];
   meta: {
     /** Which transport finally served the main document. */

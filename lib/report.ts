@@ -47,7 +47,10 @@ export function buildReport(result: AnalysisResult, i18n: ReportI18n): string {
   out.push(`- ${t('report.url')}: ${result.url}`);
   out.push(`- ${t('report.analyzed')}: ${analyzed}`);
   out.push(
-    `- ${t('report.overall')}: ${result.globalScore}/100 (${t(`score.${scoreLabel(result.globalScore)}`)})`,
+    `- ${t('report.seoScore')}: ${result.seoScore}/100 (${t(`score.${scoreLabel(result.seoScore)}`)}) — ${t('pillar.seoDesc')}`,
+  );
+  out.push(
+    `- ${t('report.geoScore')}: ${result.geoScore}/100 (${t(`score.${scoreLabel(result.geoScore)}`)}) — ${t('pillar.geoDesc')}`,
   );
   out.push('');
 
