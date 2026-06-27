@@ -2,6 +2,7 @@
 
 import type { CheckResult } from '../types';
 import { buildCheck } from '../checks-catalog';
+import { isHtmlContent } from '../fetcher';
 import type { AnalysisContext } from './context';
 import { truncate } from './utils';
 
@@ -117,30 +118,34 @@ export function analyzeTechnical(ctx: AnalysisContext): CheckResult[] {
     }),
   );
 
-  // robots.txt exists and looks valid
-  const robotsValid = robots.ok && /user-agent\s*:/i.test(robots.body);
-  if (!robots.ok) {
+  // robots.txt exists and looks valid. An SPA catch-all serves its index.html
+  // for /robots.txt — treat that HTML as "not a real robots.txt", not "invalid".
+  const robotsIsHtml = robots.ok && isHtmlContent(robots.contentType, robots.body);
+  const robotsValid = robots.ok && !robotsIsHtml && /user-agent\s*:/i.test(robots.body);
+  const robotsEvidence = [{ labelKey: 'evidence.robots.url', value: `${origin}/robots.txt` }];
+  if (!robots.ok || robotsIsHtml) {
     checks.push(
       buildCheck('tech.robots-txt', 'fail', {
-        messageKey: 'tech.robotsTxt.missing',
-        evidence: [{ labelKey: 'evidence.robots.url', value: `${origin}/robots.txt` }],
+        messageKey: robotsIsHtml ? 'tech.robotsTxt.spaFallback' : 'tech.robotsTxt.missing',
+        evidence: robotsEvidence,
       }),
     );
   } else {
     checks.push(
       buildCheck('tech.robots-txt', robotsValid ? 'pass' : 'warn', {
         messageKey: robotsValid ? 'tech.robotsTxt.valid' : 'tech.robotsTxt.invalid',
-        evidence: [{ labelKey: 'evidence.robots.url', value: `${origin}/robots.txt` }],
+        evidence: robotsEvidence,
       }),
     );
   }
 
-  // sitemap.xml exists, valid, referenced in robots.txt
-  const sitemapReferenced = robots.ok && /sitemap\s*:/i.test(robots.body);
+  // sitemap.xml exists, valid, referenced in robots.txt. Reject an SPA index.html.
+  const sitemapReferenced = robots.ok && !robotsIsHtml && /sitemap\s*:/i.test(robots.body);
+  const sitemapIsHtml = sitemap.ok && isHtmlContent(sitemap.contentType, sitemap.body);
   const sitemapValid =
-    sitemap.ok && /<(urlset|sitemapindex)[\s>]/i.test(sitemap.body);
+    sitemap.ok && !sitemapIsHtml && /<(urlset|sitemapindex)[\s>]/i.test(sitemap.body);
   const sitemapEvidence = [{ labelKey: 'evidence.sitemap.url', value: `${origin}/sitemap.xml` }];
-  if (!sitemap.ok) {
+  if (!sitemap.ok || sitemapIsHtml) {
     checks.push(
       buildCheck('tech.sitemap', 'fail', {
         messageKey: sitemapReferenced ? 'tech.sitemap.missingRef' : 'tech.sitemap.missing',

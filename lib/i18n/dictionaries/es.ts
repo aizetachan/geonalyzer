@@ -155,6 +155,8 @@ const es: Dictionary = {
   warnings: {
     robots: 'No se pudo obtener robots.txt.',
     sitemap: 'No se pudo obtener sitemap.xml.',
+    unreliable:
+      'La página solo se pudo obtener a través de un proxy público, así que algunos resultados pueden ser menos fiables.',
   },
 
   msg: {
@@ -191,6 +193,8 @@ const es: Dictionary = {
         valid: 'robots.txt existe y contiene directivas válidas.',
         invalid:
           'robots.txt existe pero no contiene directivas User-agent reconocibles.',
+        spaFallback:
+          '/robots.txt devolvió la página HTML de la app (catch-all del SPA); no hay un robots.txt real.',
       },
       sitemap: {
         missingRef:
@@ -314,6 +318,8 @@ const es: Dictionary = {
           'llms.txt presente con estructura (encabezados/enlaces Markdown).',
         unstructured:
           'llms.txt presente pero sin una estructura Markdown reconocible.',
+        spaFallback:
+          '/llms.txt devolvió la página HTML de la app (catch-all del SPA); no hay un llms.txt real.',
       },
       bluf: {
         none:

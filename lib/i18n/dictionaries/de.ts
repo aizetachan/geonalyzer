@@ -155,6 +155,8 @@ const de: Dictionary = {
   warnings: {
     robots: 'robots.txt konnte nicht abgerufen werden.',
     sitemap: 'sitemap.xml konnte nicht abgerufen werden.',
+    unreliable:
+      'Die Seite konnte nur über einen öffentlichen Proxy abgerufen werden, daher sind einige Ergebnisse möglicherweise weniger zuverlässig.',
   },
 
   msg: {
@@ -191,6 +193,8 @@ const de: Dictionary = {
         valid: 'robots.txt existiert und enthält gültige Direktiven.',
         invalid:
           'robots.txt existiert, enthält aber keine erkennbaren User-agent-Direktiven.',
+        spaFallback:
+          '/robots.txt lieferte die HTML-Seite der App (SPA-Catch-all); es gibt keine echte robots.txt.',
       },
       sitemap: {
         missingRef:
@@ -314,6 +318,8 @@ const de: Dictionary = {
           'llms.txt vorhanden mit Struktur (Markdown-Überschriften/-Links).',
         unstructured:
           'llms.txt vorhanden, aber ohne erkennbare Markdown-Struktur.',
+        spaFallback:
+          '/llms.txt lieferte die HTML-Seite der App (SPA-Catch-all); es gibt keine echte llms.txt.',
       },
       bluf: {
         none:

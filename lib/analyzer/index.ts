@@ -54,12 +54,15 @@ export async function analyze(
   const parsedUrl = normalizeUrl(rawUrl);
   const origin = parsedUrl.origin;
 
-  // 1. Main document (accept any status so we can report 4xx/5xx).
+  // 1. Main document (accept any status so we can report 4xx/5xx; require real
+  // HTML so we never audit a proxy error page / SPA shell as the target).
   onProgress('fetch-html');
-  const main = await fetchResource(parsedUrl.href, { acceptAnyStatus: true });
+  const main = await fetchResource(parsedUrl.href, { acceptAnyStatus: true, requireHtml: true });
   if (!main.ok) {
     throw new AnalysisError('errors.fetchFailed', main.error ? { detail: main.error } : undefined);
   }
+  // Flag when the page could only be fetched via an untrusted public proxy.
+  if (!main.trusted) warnings.push('unreliable');
 
   // 2–4. Supporting resources. Failures are non-fatal (recorded as warnings).
   onProgress('fetch-robots');

@@ -155,6 +155,8 @@ const fr: Dictionary = {
   warnings: {
     robots: 'Impossible de récupérer robots.txt.',
     sitemap: 'Impossible de récupérer sitemap.xml.',
+    unreliable:
+      "La page n'a pu être récupérée que via un proxy public, certains résultats peuvent donc être moins fiables.",
   },
 
   msg: {
@@ -191,6 +193,8 @@ const fr: Dictionary = {
         valid: 'robots.txt existe et contient des directives valides.',
         invalid:
           'robots.txt existe mais ne contient aucune directive User-agent reconnaissable.',
+        spaFallback:
+          "/robots.txt a renvoyé la page HTML de l'application (catch-all du SPA) ; il n'y a pas de vrai robots.txt.",
       },
       sitemap: {
         missingRef:
@@ -314,6 +318,8 @@ const fr: Dictionary = {
           'llms.txt présent avec une structure (titres/liens Markdown).',
         unstructured:
           'llms.txt présent mais sans structure Markdown reconnaissable.',
+        spaFallback:
+          "/llms.txt a renvoyé la page HTML de l'application (catch-all du SPA) ; il n'y a pas de vrai llms.txt.",
       },
       bluf: {
         none:

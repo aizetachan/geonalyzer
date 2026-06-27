@@ -162,6 +162,8 @@ const en = {
   warnings: {
     robots: 'Could not fetch robots.txt.',
     sitemap: 'Could not fetch sitemap.xml.',
+    unreliable:
+      'The page could only be fetched through a public proxy, so some results may be less reliable.',
   },
 
   // ── Dynamic analyzer messages ──────────────────────────────────────────────
@@ -199,6 +201,8 @@ const en = {
         valid: 'robots.txt exists and contains valid directives.',
         invalid:
           'robots.txt exists but contains no recognizable User-agent directives.',
+        spaFallback:
+          "/robots.txt returned the app's HTML page (SPA catch-all), so there is no real robots.txt.",
       },
       sitemap: {
         missingRef:
@@ -322,6 +326,8 @@ const en = {
           'llms.txt present with structure (Markdown headings/links).',
         unstructured:
           'llms.txt present but without recognizable Markdown structure.',
+        spaFallback:
+          "/llms.txt returned the app's HTML page (SPA catch-all), so there is no real llms.txt.",
       },
       bluf: {
         none:

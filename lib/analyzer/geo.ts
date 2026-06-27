@@ -4,6 +4,7 @@ import type { CheckResult, CheckStatus } from '../types';
 import { buildCheck } from '../checks-catalog';
 import type { AnalysisContext } from './context';
 import { getVisibleText, countWords, firstWords, truncate } from './utils';
+import { isHtmlContent } from '../fetcher';
 
 // ── AI bot catalog (2026). Claude-Web and anthropic-ai are obsolete → excluded.
 type BotKind = 'training' | 'search';
@@ -188,10 +189,11 @@ export function analyzeGeo(ctx: AnalysisContext): CheckResult[] {
 
   // ── llms.txt ─────────────────────────────────────────────────────────────
   const llmsUrl = `${ctx.parsedUrl.origin}/llms.txt`;
-  if (!llms.ok) {
+  const llmsIsHtml = llms.ok && isHtmlContent(llms.contentType, llms.body);
+  if (!llms.ok || llmsIsHtml) {
     checks.push(
       buildCheck('geo.llms-txt', 'fail', {
-        messageKey: 'geo.llmsTxt.missing',
+        messageKey: llmsIsHtml ? 'geo.llmsTxt.spaFallback' : 'geo.llmsTxt.missing',
         evidence: [{ labelKey: 'evidence.llms.url', value: llmsUrl }],
       }),
     );
