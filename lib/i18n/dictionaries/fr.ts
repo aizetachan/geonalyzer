@@ -111,6 +111,24 @@ const fr: Dictionary = {
     hint: "Touchez n'importe quelle vérification pour comprendre ce que c'est, comment elle doit fonctionner et pourquoi elle compte.",
   },
 
+  report: {
+    title: 'Analyse SEO + GEO',
+    intro:
+      "Ceci est un audit automatique SEO + GEO (optimisation pour les moteurs génératifs). Le GEO mesure dans quelle mesure la page peut être découverte et citée par les moteurs de réponse IA comme ChatGPT, Claude et Perplexity. À partir des constats ci-dessous, propose un plan d'action concret et priorisé pour améliorer le SEO et le GEO de cette page.",
+    url: 'URL',
+    analyzed: 'Analysé',
+    overall: 'Score global',
+    scores: 'Scores par catégorie',
+    findings: 'Constats',
+    priority: 'Recommandations prioritaires (par impact)',
+    finding: 'Constat',
+    fix: 'Comment corriger',
+    performanceNote: 'non mesuré (nécessite un backend)',
+    copy: "Copier le rapport pour l'IA",
+    download: 'Télécharger',
+    copied: 'Copié !',
+  },
+
   categoryCard: {
     lockedAria: '{label} (verrouillé)',
     lockedBody:

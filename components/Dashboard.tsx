@@ -11,6 +11,7 @@ import KpiHeader from './dashboard/KpiHeader';
 import StatusDistributionChart from './dashboard/StatusDistributionChart';
 import CategoryRanking from './dashboard/CategoryRanking';
 import PriorityRecommendations from './dashboard/PriorityRecommendations';
+import ReportActions from './dashboard/ReportActions';
 
 interface DashboardProps {
   result: AnalysisResult;
@@ -69,6 +70,7 @@ export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardPr
             <button className="btn btn-ghost" type="button" onClick={onNewUrl}>
               {t('dashboard.newUrl')}
             </button>
+            <ReportActions result={result} />
           </div>
         </div>
       </section>

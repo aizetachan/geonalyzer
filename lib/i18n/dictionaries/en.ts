@@ -118,6 +118,24 @@ const en = {
     hint: 'Tap any check to learn what it is, how it should work and why it matters.',
   },
 
+  report: {
+    title: 'SEO + GEO analysis',
+    intro:
+      "This is an automated SEO + GEO (Generative Engine Optimization) audit. GEO measures how well the page can be discovered and cited by AI answer engines such as ChatGPT, Claude and Perplexity. Based on the findings below, give a prioritized, concrete action plan to improve this page's SEO and GEO.",
+    url: 'URL',
+    analyzed: 'Analyzed',
+    overall: 'Overall score',
+    scores: 'Scores by category',
+    findings: 'Findings',
+    priority: 'Priority recommendations (by impact)',
+    finding: 'Finding',
+    fix: 'How to fix',
+    performanceNote: 'not measured (requires a backend)',
+    copy: 'Copy AI report',
+    download: 'Download',
+    copied: 'Copied!',
+  },
+
   categoryCard: {
     lockedAria: '{label} (locked)',
     lockedBody:

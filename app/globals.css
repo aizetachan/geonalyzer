@@ -526,6 +526,10 @@ a:hover {
   margin-top: 22px;
   flex-wrap: wrap;
 }
+/* Report buttons flow inline with the other hero actions. */
+.report-actions {
+  display: contents;
+}
 
 /* ── Warnings ───────────────────────────────────────────────────────────── */
 .warnings {

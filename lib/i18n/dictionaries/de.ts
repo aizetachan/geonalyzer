@@ -111,6 +111,24 @@ const de: Dictionary = {
     hint: 'Tippe auf einen beliebigen Check, um zu erfahren, was er ist, wie er funktionieren sollte und warum er wichtig ist.',
   },
 
+  report: {
+    title: 'SEO + GEO Analyse',
+    intro:
+      'Dies ist ein automatischer SEO + GEO Audit (Generative Engine Optimization). GEO misst, wie gut die Seite von KI-Antwortmaschinen wie ChatGPT, Claude und Perplexity gefunden und zitiert werden kann. Erstelle auf Basis der folgenden Ergebnisse einen konkreten, priorisierten Maßnahmenplan zur Verbesserung des SEO und GEO dieser Seite.',
+    url: 'URL',
+    analyzed: 'Analysiert',
+    overall: 'Gesamtpunktzahl',
+    scores: 'Punkte nach Kategorie',
+    findings: 'Ergebnisse',
+    priority: 'Vorrangige Empfehlungen (nach Wirkung)',
+    finding: 'Befund',
+    fix: 'So behebst du es',
+    performanceNote: 'nicht gemessen (erfordert ein Backend)',
+    copy: 'KI-Bericht kopieren',
+    download: 'Herunterladen',
+    copied: 'Kopiert!',
+  },
+
   categoryCard: {
     lockedAria: '{label} (gesperrt)',
     lockedBody:
