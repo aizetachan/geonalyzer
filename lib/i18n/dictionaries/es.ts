@@ -81,6 +81,34 @@ const es: Dictionary = {
     filterWarn: 'Solo mejorables',
     filterAria: 'Filtrar checks',
     categoryEmpty: 'Sin elementos para este filtro en esta categoría.',
+    kpis: {
+      title: 'Resumen',
+      pass: 'Correctos',
+      warn: 'Mejorables',
+      fail: 'Fallos',
+      checks: '{n} checks',
+    },
+    distribution: {
+      title: 'Distribución de estados',
+    },
+    ranking: {
+      title: 'Categorías por impacto',
+      subtitle: 'Las mayores oportunidades primero',
+      impact: 'Impacto {n}',
+    },
+    priority: {
+      title: 'Recomendaciones prioritarias',
+      subtitle: 'Ordenadas por peso × severidad',
+      empty: 'No hay checks con fallo ni mejorables — ¡buen trabajo!',
+      inCategory: '{category}',
+    },
+  },
+
+  tour: {
+    toggle: 'Ayuda guiada',
+    close: 'Cerrar',
+    title: 'Ayuda guiada',
+    hint: 'Toca cualquier check para saber qué es, cómo debe funcionar y por qué importa.',
   },
 
   categoryCard: {

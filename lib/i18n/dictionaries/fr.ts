@@ -81,6 +81,34 @@ const fr: Dictionary = {
     filterWarn: 'Améliorables uniquement',
     filterAria: 'Filtrer les vérifications',
     categoryEmpty: 'Aucun élément ne correspond à ce filtre dans cette catégorie.',
+    kpis: {
+      title: 'Aperçu',
+      pass: 'Réussis',
+      warn: 'À améliorer',
+      fail: 'En échec',
+      checks: '{n} vérifications',
+    },
+    distribution: {
+      title: 'Répartition des statuts',
+    },
+    ranking: {
+      title: 'Catégories par impact',
+      subtitle: "Les plus grandes opportunités d'abord",
+      impact: 'Impact {n}',
+    },
+    priority: {
+      title: 'Recommandations prioritaires',
+      subtitle: 'Triées par poids × gravité',
+      empty: 'Aucune vérification en échec ou à améliorer — excellent travail.',
+      inCategory: '{category}',
+    },
+  },
+
+  tour: {
+    toggle: 'Aide guidée',
+    close: 'Fermer',
+    title: 'Aide guidée',
+    hint: "Touchez n'importe quelle vérification pour comprendre ce que c'est, comment elle doit fonctionner et pourquoi elle compte.",
   },
 
   categoryCard: {

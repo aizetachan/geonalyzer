@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { I18nProvider } from '@/lib/i18n/context';
+import { TourProvider } from '@/components/tour/TourContext';
+import TourOverlay from '@/components/tour/TourOverlay';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
@@ -18,8 +20,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <I18nProvider>
-          <Navbar />
-          {children}
+          <TourProvider>
+            <Navbar />
+            {children}
+            <TourOverlay />
+          </TourProvider>
         </I18nProvider>
       </body>
     </html>

@@ -81,6 +81,34 @@ const it: Dictionary = {
     filterWarn: 'Solo migliorabili',
     filterAria: 'Filtra i controlli',
     categoryEmpty: 'Nessun elemento per questo filtro in questa categoria.',
+    kpis: {
+      title: 'Panoramica',
+      pass: 'Superati',
+      warn: 'Migliorabili',
+      fail: 'Falliti',
+      checks: '{n} controlli',
+    },
+    distribution: {
+      title: 'Distribuzione degli stati',
+    },
+    ranking: {
+      title: 'Categorie per impatto',
+      subtitle: 'Prima le maggiori opportunità',
+      impact: 'Impatto {n}',
+    },
+    priority: {
+      title: 'Raccomandazioni prioritarie',
+      subtitle: 'Ordinate per peso × gravità',
+      empty: 'Nessun controllo fallito o migliorabile — ottimo lavoro.',
+      inCategory: '{category}',
+    },
+  },
+
+  tour: {
+    toggle: 'Aiuto guidato',
+    close: 'Chiudi',
+    title: 'Aiuto guidato',
+    hint: "Tocca un controllo qualsiasi per scoprire che cos'è, come dovrebbe funzionare e perché è importante.",
   },
 
   categoryCard: {

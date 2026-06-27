@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import type { AnalysisResult, MessageParams } from '@/lib/types';
 import { AnalysisError } from '@/lib/types';
 import { analyze, ANALYSIS_STEPS } from '@/lib/analyzer';
+import { readCachedResult, writeCachedResult } from '@/lib/cache';
 import { useI18n } from '@/lib/i18n/context';
 import UrlInput from '@/components/UrlInput';
 import LoadingState from '@/components/LoadingState';
@@ -24,13 +25,26 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<ErrorState | null>(null);
 
-  const run = useCallback(async (target: string) => {
+  const run = useCallback(async (target: string, opts?: { force?: boolean }) => {
     setUrl(target);
+    setError(null);
+
+    // Cache hit (unless an explicit re-analyze): show the same snapshot with no
+    // network call, so reloading or re-testing the same URL doesn't vary.
+    if (!opts?.force) {
+      const cached = readCachedResult(target);
+      if (cached) {
+        setResult(cached);
+        setPhase('done');
+        return;
+      }
+    }
+
     setPhase('loading');
     setStep(ANALYSIS_STEPS[0].id);
-    setError(null);
     try {
       const res = await analyze(target, { onProgress: (id) => setStep(id) });
+      writeCachedResult(target, res);
       setResult(res);
       setPhase('done');
     } catch (e) {
@@ -62,7 +76,7 @@ export default function Home() {
       {phase === 'done' && result ? (
         <Dashboard
           result={result}
-          onReanalyze={() => run(result.url)}
+          onReanalyze={() => run(result.url, { force: true })}
           onNewUrl={reset}
         />
       ) : (

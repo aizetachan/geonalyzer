@@ -4,10 +4,12 @@ import { useId, useState } from 'react';
 import type { CheckResult } from '@/lib/types';
 import { STATUS_META } from '@/lib/status-meta';
 import { useI18n } from '@/lib/i18n/context';
+import { useTour } from './tour/TourContext';
 import CheckDetail from './CheckDetail';
 
 export default function CheckRow({ check }: { check: CheckResult }) {
   const { t, tVal, tCheck } = useI18n();
+  const { active: tourActive, focus } = useTour();
   const [open, setOpen] = useState(false);
   const meta = STATUS_META[check.status];
   const panelId = useId();
@@ -22,9 +24,9 @@ export default function CheckRow({ check }: { check: CheckResult }) {
       <button
         type="button"
         className="check-row"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls={panelId}
+        onClick={() => (tourActive ? focus(check) : setOpen((o) => !o))}
+        aria-expanded={tourActive ? undefined : open}
+        aria-controls={tourActive ? undefined : panelId}
       >
         <span className="check-status" style={{ color: meta.color }}>
           <span className="check-icon" aria-hidden="true">

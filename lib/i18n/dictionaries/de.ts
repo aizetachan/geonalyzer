@@ -81,6 +81,34 @@ const de: Dictionary = {
     filterWarn: 'Nur verbesserbar',
     filterAria: 'Checks filtern',
     categoryEmpty: 'Nichts entspricht diesem Filter in dieser Kategorie.',
+    kpis: {
+      title: 'Überblick',
+      pass: 'Bestanden',
+      warn: 'Verbesserbar',
+      fail: 'Fehlerhaft',
+      checks: '{n} Checks',
+    },
+    distribution: {
+      title: 'Statusverteilung',
+    },
+    ranking: {
+      title: 'Kategorien nach Wirkung',
+      subtitle: 'Größte Chancen zuerst',
+      impact: 'Wirkung {n}',
+    },
+    priority: {
+      title: 'Vorrangige Empfehlungen',
+      subtitle: 'Sortiert nach Gewicht × Schweregrad',
+      empty: 'Keine fehlerhaften oder verbesserbaren Checks — super gemacht.',
+      inCategory: '{category}',
+    },
+  },
+
+  tour: {
+    toggle: 'Geführte Hilfe',
+    close: 'Schließen',
+    title: 'Geführte Hilfe',
+    hint: 'Tippe auf einen beliebigen Check, um zu erfahren, was er ist, wie er funktionieren sollte und warum er wichtig ist.',
   },
 
   categoryCard: {

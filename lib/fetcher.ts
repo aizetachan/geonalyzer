@@ -94,6 +94,18 @@ export interface FetchOptions {
    * false, non-2xx is treated as a failure and the chain continues.
    */
   acceptAnyStatus?: boolean;
+  /**
+   * Extra attempts after the first if the whole transport chain fails. Used by
+   * probeResource so a transient public-proxy failure doesn't flip a check
+   * (robots/sitemap/llms) between runs. 0 = single attempt.
+   */
+  retries?: number;
+  /** Linear delay between attempts when retrying (ms). */
+  retryDelayMs?: number;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -163,10 +175,26 @@ export async function fetchResource(
 /**
  * Probe a resource only to learn whether it exists (e.g. robots.txt, sitemap.xml,
  * llms.txt). Returns the FetchResult; callers decide pass/fail from `ok`/`status`.
+ *
+ * Retries the whole transport chain a few times before declaring failure, so a
+ * flaky public proxy doesn't intermittently report a real file as "missing"
+ * (which would flip the dependent checks between runs). The analysis stays
+ * deterministic: identical inputs still yield identical checks; we only reduce
+ * false negatives from transient transport errors.
  */
 export async function probeResource(
   targetUrl: string,
   options: FetchOptions = {},
 ): Promise<FetchResult> {
-  return fetchResource(targetUrl, { timeoutMs: 8000, ...options });
+  const { retries = 2, retryDelayMs = 400, ...rest } = options;
+  const opts: FetchOptions = { timeoutMs: 8000, ...rest };
+
+  let last: FetchResult | null = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const result = await fetchResource(targetUrl, opts);
+    if (result.ok) return result;
+    last = result;
+    if (attempt < retries) await delay(retryDelayMs);
+  }
+  return last as FetchResult;
 }

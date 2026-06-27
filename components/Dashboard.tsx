@@ -1,11 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { AnalysisResult } from '@/lib/types';
 import { scoreLabel } from '@/lib/scoring';
+import { globalDistribution, categoryRanking, priorityChecks } from '@/lib/insights';
 import { useI18n } from '@/lib/i18n/context';
 import ScoreGauge from './ScoreGauge';
 import CategoryCard, { type CheckFilter } from './CategoryCard';
+import KpiHeader from './dashboard/KpiHeader';
+import StatusDistributionChart from './dashboard/StatusDistributionChart';
+import CategoryRanking from './dashboard/CategoryRanking';
+import PriorityRecommendations from './dashboard/PriorityRecommendations';
 
 interface DashboardProps {
   result: AnalysisResult;
@@ -23,6 +28,10 @@ export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardPr
   const { t, locale } = useI18n();
   const [filter, setFilter] = useState<CheckFilter>('all');
   const labelKey = scoreLabel(result.globalScore);
+
+  const dist = useMemo(() => globalDistribution(result), [result]);
+  const ranking = useMemo(() => categoryRanking(result.categories), [result]);
+  const priority = useMemo(() => priorityChecks(result.categories), [result]);
 
   let host = result.url;
   try {
@@ -76,7 +85,24 @@ export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardPr
         </div>
       )}
 
-      {/* Filter */}
+      {/* Overview: KPI tiles + status distribution */}
+      <section className="overview glass" aria-label={t('dashboard.kpis.title')}>
+        <header className="panel-head">
+          <h3 className="panel-title">{t('dashboard.kpis.title')}</h3>
+          <p className="panel-subtitle faint">{t('dashboard.kpis.checks', { n: dist.total })}</p>
+        </header>
+        <KpiHeader dist={dist} />
+        <h4 className="overview-sub muted">{t('dashboard.distribution.title')}</h4>
+        <StatusDistributionChart dist={dist} />
+      </section>
+
+      {/* Priority recommendations */}
+      <PriorityRecommendations items={priority} />
+
+      {/* Category ranking by impact */}
+      <CategoryRanking ranking={ranking} />
+
+      {/* Full breakdown by category (filterable) */}
       <div className="filter-bar" role="group" aria-label={t('dashboard.filterAria')}>
         <span className="filter-label muted">{t('dashboard.filterShow')}</span>
         {FILTERS.map((f) => (
@@ -92,7 +118,6 @@ export default function Dashboard({ result, onReanalyze, onNewUrl }: DashboardPr
         ))}
       </div>
 
-      {/* Category grid */}
       <div className="category-grid">
         {result.categories.map((cat) => (
           <CategoryCard key={cat.id} category={cat} filter={filter} />

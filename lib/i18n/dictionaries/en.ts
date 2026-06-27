@@ -88,6 +88,34 @@ const en = {
     filterWarn: 'Improvable only',
     filterAria: 'Filter checks',
     categoryEmpty: 'Nothing matches this filter in this category.',
+    kpis: {
+      title: 'Overview',
+      pass: 'Passing',
+      warn: 'Improvable',
+      fail: 'Failing',
+      checks: '{n} checks',
+    },
+    distribution: {
+      title: 'Status distribution',
+    },
+    ranking: {
+      title: 'Categories by impact',
+      subtitle: 'Biggest opportunities first',
+      impact: 'Impact {n}',
+    },
+    priority: {
+      title: 'Priority recommendations',
+      subtitle: 'Sorted by weight × severity',
+      empty: 'No failing or improvable checks — great job.',
+      inCategory: '{category}',
+    },
+  },
+
+  tour: {
+    toggle: 'Guided help',
+    close: 'Close',
+    title: 'Guided help',
+    hint: 'Tap any check to learn what it is, how it should work and why it matters.',
   },
 
   categoryCard: {
